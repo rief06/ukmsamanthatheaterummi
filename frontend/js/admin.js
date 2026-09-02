@@ -233,22 +233,28 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const u = document.getElementById('l-user').value;
     const p = document.getElementById('l-pass').value;
 
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: u, pass: p })
-    });
-    const result = await res.json();
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: u, pass: p })
+        });
+        
+        const result = await res.json();
 
-    if (res.ok && result.success) {
-        sessionStorage.setItem('active_user', JSON.stringify(result.user));
-        activeUser = result.user;
-        loginSect.classList.add('hidden');
-        dashSect.classList.remove('hidden');
-        applyRoleRestrictions(result.user.role);
-        fetchAdminData();
-    } else {
-        alert(result.error || 'Username atau Password Salah!');
+        if (res.ok && result.success) {
+            sessionStorage.setItem('active_user', JSON.stringify(result.user));
+            activeUser = result.user;
+            loginSect.classList.add('hidden');
+            dashSect.classList.remove('hidden');
+            applyRoleRestrictions(result.user.role);
+            fetchAdminData();
+        } else {
+            alert('❌ ' + (result.error || 'Username atau Password Salah!'));
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        alert('❌ Gagal menghubungi server backend! Pastikan server backend sedang aktif.');
     }
 });
 
