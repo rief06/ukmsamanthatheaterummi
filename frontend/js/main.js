@@ -12,7 +12,6 @@ async function loadData() {
         document.getElementById('pub-tlp').innerText = data.profil.telepon;
         document.getElementById('l-ig').href = data.profil.sosmed.ig;
         document.getElementById('l-tt').href = data.profil.sosmed.tiktok;
-        document.getElementById('l-yt').href = data.profil.sosmed.youtube;
         
         document.querySelectorAll('[id^="pub-logo"]').forEach(el => el.src = data.profil.logo);
         document.getElementById('pub-img-about').src = data.profil.imgTentang;
@@ -95,7 +94,7 @@ document.getElementById('form-pesan').addEventListener('submit', async (e) => {
         body: JSON.stringify(payload)
     });
     if (res.ok) {
-        alert('✅ Pesan berhasil dikirim!');
+        alert('Pesan berhasil dikirim!');
         e.target.reset();
     }
 });
@@ -125,12 +124,12 @@ document.getElementById('form-checkout').addEventListener('submit', async (e) =>
     });
     const result = await res.json();
     if (res.ok) {
-        alert(`✅ Pemesanan Berhasil!\nKode Booking: ${result.kode}`);
+        alert(`Pemesanan Berhasil!\nKode Booking: ${result.kode}`);
         document.getElementById('modal-checkout').classList.add('hidden');
         e.target.reset();
         loadData();
     } else {
-        alert('❌ Gagal: ' + result.error);
+        alert('Gagal: ' + result.error);
     }
 });
 

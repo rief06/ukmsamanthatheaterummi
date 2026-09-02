@@ -1,2 +1,2 @@
-// frontend/js/config.js
+//  frontend/js/config.js
 const API_BASE_URL = "/api";

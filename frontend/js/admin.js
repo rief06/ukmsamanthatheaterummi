@@ -65,7 +65,7 @@ function applyRoleRestrictions(role) {
         document.getElementById('nav-pesan').classList.add('hidden');
         document.getElementById('nav-setup').classList.add('hidden');
     }
-    const roleName = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: "Divisi PDD" };
+    const roleName = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: " PDD" };
     document.getElementById('sidebar-role-display').innerText = roleName[role] || role;
 }
 
@@ -92,7 +92,6 @@ function renderUI() {
         document.getElementById('p-link').value = db.profil.linkOprec || "";
         document.getElementById('p-ig').value = db.profil.sosmed?.ig || "";
         document.getElementById('p-tiktok').value = db.profil.sosmed?.tiktok || "";
-        document.getElementById('p-yt').value = db.profil.sosmed?.youtube || "";
 
         if (db.profil.logo) {
             document.getElementById('sidebar-logo').src = db.profil.logo;
@@ -320,7 +319,7 @@ document.getElementById('form-jadwal').addEventListener('submit', (e) => {
     for (let i = 1; i <= kuota; i++) {
         let num = i.toString().padStart(3, '0');
         tiketList.push({
-            kode: `TKT-${eventId.toString().slice(-4)}-${num}`,
+            kode: `STU-${eventId.toString().slice(-4)}-${num}`,
             status: 'Tersedia',
             nama: '',
             email: '',
@@ -702,8 +701,7 @@ document.getElementById('form-profil').addEventListener('submit', async (e) => {
         telepon: document.getElementById('p-telepon').value,
         sosmed: {
             ig: document.getElementById('p-ig').value,
-            tiktok: document.getElementById('p-tiktok').value,
-            youtube: document.getElementById('p-yt').value
+            tiktok: document.getElementById('p-tiktok').value
         }
     };
     const res = await fetch(`${API_BASE_URL}/admin/profil`, {

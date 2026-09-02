@@ -1,7 +1,7 @@
 {
   "name": "teater-samantha",
   "version": "1.0.0",
-  "description": "Sistem Informasi & E-Ticketing UKM Teater SAMANTHA",
+  "description": "Website Profile UKM SAMANTHA Teater Universitas Muhammadiyah Sukabumi.",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",

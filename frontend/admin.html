@@ -33,8 +33,8 @@
                 <input type="password" id="r-pass" placeholder="Password Baru" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
                 <select id="r-role" class="w-full bg-black border border-gray-800 px-4 py-3 mb-6 rounded outline-none focus:border-red-600 text-sm" required>
                     <option value="" disabled selected>Pilih Role / Jabatan...</option>
-                    <option value="admin">Super Admin (Akses Penuh)</option><option value="ketum">Ketua Umum (Akses Penuh)</option>
-                    <option value="sekre">Sekretaris (Hanya SDM & Pengaturan)</option><option value="pdd">Divisi PDD (Hanya Tiket & Galeri)</option>
+                    <option value="admin">Super Admin</option><option value="ketum">Ketua Umum (Akses Penuh)</option>
+                    <option value="sekre">Sekretaris</option><option value="pdd">Divisi PDD (Hanya Tiket & Galeri)</option>
                 </select>
                 <button type="submit" class="w-full bg-blue-600 text-white py-3 font-bold rounded hover:bg-blue-700 shadow-lg transition">Daftarkan Akun</button>
             </form>
@@ -61,7 +61,7 @@
                 <strong>PANDUAN PENTING:</strong><br>
                 1. Buka File Jawaban Google Form Anda di Google Sheets.<br>
                 2. Klik Menu <strong>File > Bagikan > Publikasikan ke web</strong>.<br>
-                3. Pilih Format <strong>CSV (Nilai yang dipisahkan koma)</strong>.<br>
+                3. Pilih Format <strong>CSV</strong>.<br>
                 4. Klik Publikasikan, lalu <strong>Copy Link yang berakhiran <span class="text-blue-400">/pub?output=csv</span></strong>.
             </div>
             <form id="form-import-oprec">
@@ -73,7 +73,7 @@
         <!-- Modal Jadwal -->
         <div id="modal-jadwal" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-lg p-6 relative m-auto rounded-lg">
             <button class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-xl font-bold mb-6 border-b border-gray-800 pb-2">Buat Event (Otomatis Generate Barcode)</h3>
+            <h3 class="text-xl font-bold mb-6 border-b border-gray-800 pb-2">Buat Event</h3>
             <form id="form-jadwal">
                 <input type="text" id="j-judul" placeholder="Judul Pementasan" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
                 <div class="grid grid-cols-2 gap-4 mb-4"><input type="date" id="j-tanggal" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required><input type="text" id="j-lokasi" placeholder="Lokasi (ex: Audit)" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required></div>
@@ -81,7 +81,7 @@
                     <input type="number" id="j-harga" placeholder="Harga Tiket (Rp)" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
                     <input type="number" id="j-kuota" placeholder="Jumlah Tiket Dibuat" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required title="Kode Barcode akan dibuat sebanyak jumlah ini.">
                 </div>
-                <label class="block text-xs font-bold text-gray-400 mb-2">Upload QR Code Rekening (Muncul di Web Pembeli)</label>
+                <label class="block text-xs font-bold text-gray-400 mb-2">Upload QR Code Pembayaran</label>
                 <input type="file" id="j-qr" accept="image/*" class="w-full mb-6 bg-black border border-gray-800 p-2 text-sm rounded" required>
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Generate Barcode & Simpan Event</button>
             </form>
@@ -109,7 +109,9 @@
                 <input type="text" id="a-nama" placeholder="Nama Lengkap" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
                 <input type="text" id="a-divisi" placeholder="Divisi/Jabatan" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
                 <select id="a-status" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none"><option value="Aktif">Aktif</option><option value="Pasif">Pasif</option><option value="Alumni">Alumni</option></select>
-                <label class="block text-xs font-bold text-gray-400 mb-1">Foto Anggota (Opsional)</label>
+                <label class="block text-xs font-bold text-gray-400 mb-1">Foto Anggota
+                    
+                </label>
                 <input type="file" id="a-foto" accept="image/*" class="w-full mb-6 bg-black border border-gray-800 p-2 text-xs rounded">
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Simpan Data Anggota</button>
             </form>
@@ -138,7 +140,7 @@
             <form id="form-galeri">
                 <select id="g-kategori" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded" required><option value="" disabled selected>Pilih Kategori...</option><option value="Pementasan">Pementasan</option><option value="Behind The Scenes">Behind The Scenes</option><option value="Latihan">Latihan & Moment</option></select>
                 <input type="file" id="g-file" accept="image/*" class="w-full mb-6 bg-black border border-gray-800 p-3 text-sm rounded" required>
-                <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Upload (Auto Compress)</button>
+                <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Upload</button>
             </form>
         </div>
 
@@ -210,7 +212,7 @@
                         <div class="lg:col-span-1">
                             <div class="bg-black border border-gray-800 p-6 rounded-lg sticky top-6 shadow-2xl">
                                 <h3 class="font-bold text-xl mb-2 text-center text-brand-red"><i class="fa-solid fa-barcode mr-2"></i> Scanner Barcode Tiket</h3>
-                                <p class="text-xs text-gray-400 text-center mb-6 border-b border-gray-800 pb-4">Buka Kamera atau Ketik Kode (TKT-XXXX) tiket pengunjung yang sudah Lunas.</p>
+                                <p class="text-xs text-gray-400 text-center mb-6 border-b border-gray-800 pb-4">Buka Kamera atau Ketik Kode (TKT-XXXX).</p>
                                 
                                 <button onclick="startScanner()" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-3 rounded font-bold mb-4 flex justify-center items-center gap-2 shadow"><i class="fa-solid fa-camera"></i> Buka Kamera Laptop/HP</button>
 
@@ -232,7 +234,7 @@
                         <div class="bg-black border border-gray-800 rounded-lg p-6 shadow-xl">
                             <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2"><h3 class="font-bold text-xl">Kelola SDM Aktif</h3><button onclick="bukaModalAnggota()" class="bg-blue-600 text-white px-3 py-1.5 text-xs font-bold rounded shadow-lg hover:bg-blue-500"><i class="fa-solid fa-plus mr-1"></i> Tambah SDM</button></div>
                             <div class="overflow-x-auto h-[400px] border border-gray-800 rounded">
-                                <table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-900 text-gray-400 sticky top-0 shadow-md"><tr><th class="p-4">Anggota</th><th class="p-4">Divisi</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi</th></tr></thead>
+                                <table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-900 text-gray-400 sticky top-0 shadow-md"><tr><th class="p-4">Anggota</th><th class="p-4">Jabatan</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi</th></tr></thead>
                                 <tbody id="tabel-anggota" class="text-gray-300"></tbody></table>
                             </div>
                         </div>
@@ -279,7 +281,7 @@
                                 <div><label class="text-xs font-bold text-gray-500 mb-1 block">Nama Organisasi</label><input type="text" id="p-nama" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white font-bold"></div>
                                 <div class="bg-red-900/10 p-4 border border-brand-red/30 rounded-lg">
                                     <label class="text-xs font-bold text-brand-red mb-2 block">STATUS OPREC & LINK GOOGLE FORM</label>
-                                    <select id="p-status-oprec" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white mb-3 font-bold"><option value="Buka">BUKA PENDAFTARAN (AKTIF)</option><option value="Tutup">TUTUP PENDAFTARAN</option></select>
+                                    <select id="p-status-oprec" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white mb-3 font-bold"><option value="Buka">BUKA PENDAFTARAN</option><option value="Tutup">TUTUP PENDAFTARAN</option></select>
                                     <input type="url" id="p-link" placeholder="Link Google Form..." class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white">
                                 </div>
                                 <div><label class="text-xs font-bold text-gray-500 mb-1 block">Sejarah Singkat</label><textarea id="p-sejarah" rows="3" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white"></textarea></div>
@@ -287,7 +289,6 @@
                                 <div class="grid grid-cols-3 gap-4 border-t border-gray-800 pt-4 mt-2">
                                     <div><label class="text-[10px] font-bold text-gray-500 mb-1 block">Link IG</label><input type="text" id="p-ig" class="w-full bg-gray-900 p-2 text-xs rounded border border-gray-800 text-white"></div>
                                     <div><label class="text-[10px] font-bold text-gray-500 mb-1 block">Link TikTok</label><input type="text" id="p-tiktok" class="w-full bg-gray-900 p-2 text-xs rounded border border-gray-800 text-white"></div>
-                                    <div><label class="text-[10px] font-bold text-gray-500 mb-1 block">Link YouTube</label><input type="text" id="p-yt" class="w-full bg-gray-900 p-2 text-xs rounded border border-gray-800 text-white"></div>
                                 </div>
                                 <button type="submit" class="w-full bg-red-600 text-white py-3 rounded text-sm font-bold shadow-lg hover:bg-red-700 mt-4"><i class="fa-solid fa-save mr-2"></i> Simpan Pengaturan Web</button>
                             </form>

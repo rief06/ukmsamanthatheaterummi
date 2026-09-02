@@ -28,8 +28,8 @@ let db = {
     profil: {
         nama: "TEATER SAMANTHA",
         sejarah: "Wadah berekspresi seni teater.",
-        email: "info@samantha.com",
-        telepon: "-",
+        email: "st@example.com",
+        telepon: "08",
         sosmed: { ig: "#", tiktok: "#", youtube: "#" },
         statusOprec: "Buka",
         linkOprec: "#",
