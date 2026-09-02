@@ -9,6 +9,19 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
+const path = require('path');
+
+// Tambahkan ini agar server Express menampilkan folder frontend
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/admin.html'));
+});
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
 // Simpan data state/memori (bisa diganti query ke MySQL/PostgreSQL/MongoDB)
 let db = {
     users: [{ user: "admin", pass: "admin123", role: "admin" }],
@@ -148,3 +161,5 @@ app.delete('/api/admin/:tipe/:id', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
 });
+
+module.exports = app;
