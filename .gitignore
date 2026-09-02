@@ -1,0 +1,13 @@
+# Dependency & build
+node_modules/
+dist/
+build/
+
+# Lingkungan & Kunci Rahasia
+.env
+*.log
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
