@@ -24,8 +24,8 @@
                 <button type="button" id="tab-register" class="w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300">Buat Akun Baru</button>
             </div>
             <form id="login-form">
-                <input type="text" id="l-user" placeholder="Username (Default: admin)" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
-                <input type="password" id="l-pass" placeholder="Password (Default: admin123)" class="w-full bg-black border border-gray-800 px-4 py-3 mb-6 rounded outline-none focus:border-red-600" required>
+                <input type="text" id="l-user" placeholder="Username" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
+                <input type="password" id="l-pass" placeholder="Password" class="w-full bg-black border border-gray-800 px-4 py-3 mb-6 rounded outline-none focus:border-red-600" required>
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold rounded hover:bg-red-700 shadow-lg transition">Masuk Dashboard</button>
             </form>
             <form id="register-form" class="hidden">
@@ -33,10 +33,9 @@
                 <input type="password" id="r-pass" placeholder="Password Baru" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
                 <select id="r-role" class="w-full bg-black border border-gray-800 px-4 py-3 mb-6 rounded outline-none focus:border-red-600 text-sm" required>
                     <option value="" disabled selected>Pilih Role / Jabatan...</option>
-                    <option value="admin">Super Admin (Akses Penuh)</option>
-                    <option value="ketum">Ketua Umum (Akses Penuh)</option>
-                    <option value="sekre">Sekretaris (Hanya SDM & Pengaturan)</option>
-                    <option value="pdd">Divisi PDD (Hanya Tiket & Galeri)</option>
+                    <option value="ketum">Ketua Umum</option>
+                    <option value="sekre">Sekretaris</option>
+                    <option value="pdd">KoDok</option>
                 </select>
                 <button type="submit" class="w-full bg-blue-600 text-white py-3 font-bold rounded hover:bg-blue-700 shadow-lg transition">Daftarkan Akun</button>
             </form>
