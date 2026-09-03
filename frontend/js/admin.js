@@ -1,5 +1,8 @@
 // frontend/js/admin.js
 
+// Memastikan API selalu memanggil /api
+const API_BASE_URL = window.API_BASE_URL || "/api";
+
 let db = {
     users: [],
     profil: {},
