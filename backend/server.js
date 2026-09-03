@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+// Baca file .env jika ada (aman dari crash)
+try { require('dotenv').config(); } catch(e) {}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -13,13 +16,17 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
+// Ambil akun admin utama dari file .env
+const defaultAdminUser = (process.env.ADMIN_USER || "admin").trim().toLowerCase();
+const defaultAdminPass = (process.env.ADMIN_PASS || "samanthanewgeneration").trim();
+
 // --- DATABASE MEMORY (DENGAN BACKUP RESTORE AUTO-SYNC) ---
 let db = {
     users: [
-        { user: "admin", pass: "admin123", role: "admin" }
+        { user: defaultAdminUser, pass: defaultAdminPass, role: "admin" }
     ],
     profil: {
-        nama: "TEATER SAMANTHA",
+        nama: "SAMANTHA Theater",
         sejarah: "Wadah berekspresi seni teater.",
         email: "st@example.com",
         telepon: "08",
