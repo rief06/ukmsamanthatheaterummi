@@ -204,7 +204,14 @@ function bukaDashboard() {
 // Cek apakah sudah login sebelumnya
 let activeUser = JSON.parse(sessionStorage.getItem('active_user'));
 if (activeUser) {
-    bukaDashboard();
+    if (loginSect) {
+        loginSect.style.display = 'none';
+        loginSect.classList.add('hidden');
+    }
+    if (dashSect) {
+        dashSect.style.display = 'flex';
+        dashSect.classList.remove('hidden');
+    }
     applyRoleRestrictions(activeUser.role);
     fetchAdminData();
 }
@@ -238,19 +245,32 @@ document.getElementById('login-form')?.addEventListener('submit', async function
         });
         const result = await res.json();
 
+        // 👉 GANTI MULAI DARI BARIS INI:
         if (res.ok && result.success) {
             sessionStorage.setItem('active_user', JSON.stringify(result.user));
             activeUser = result.user;
             
-            bukaDashboard();
+            // Sembunyikan panel login & tampilkan dashboard
+            if (loginSect) {
+                loginSect.style.display = 'none';
+                loginSect.classList.add('hidden');
+            }
+            if (dashSect) {
+                dashSect.style.display = 'flex';
+                dashSect.classList.remove('hidden');
+            }
+
             applyRoleRestrictions(result.user.role);
             fetchAdminData();
+            alert('✅ Berhasil masuk!');
         } else {
             alert('❌ ' + (result.error || 'Username atau Password Salah!'));
         }
+        // 👈 SAMPAI DI SINI
+        
     } catch (err) {
         console.error(err);
-        alert('❌ Gagal menghubungi server: ' + err.message);
+        alert('❌ Gagal menghubungi server backend.');
     }
 });
 

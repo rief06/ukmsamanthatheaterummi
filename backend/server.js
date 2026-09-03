@@ -9,8 +9,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
-// Melayani file statis frontend saat lokal
+// Melayani file statis frontend baik via / maupun /frontend saat lokal
 app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
 // --- DATABASE MEMORY ---
 let db = {
@@ -43,11 +44,9 @@ const handleLogin = (req, res) => {
     }
     body = body || {};
     
-    // Hilangkan spasi dan samakan huruf kecil
     const user = (body.user || body.username || '').trim().toLowerCase();
     const pass = (body.pass || body.password || '').trim();
 
-    // Data akun bawaan
     const users = db.users || [{ user: "admin", pass: "admin123", role: "admin" }];
     const u = users.find(x => x.user.toLowerCase() === user && x.pass === pass);
     
@@ -57,19 +56,22 @@ const handleLogin = (req, res) => {
     return res.json({ success: true, user: { user: u.user, role: u.role } });
 };
 
-// Rute auth universal
-app.post(['/api/auth/login', '/auth/login', '/api/login'], handleLogin);
-app.post('*', (req, res, next) => {
+const handleRegister = (req, res) => {
     let body = req.body;
     if (typeof body === 'string') {
         try { body = JSON.parse(body); } catch(e) {}
     }
     body = body || {};
-    if (req.url.includes('login') || (body.user && body.pass && !body.role)) {
-        return handleLogin(req, res);
+    const user = (body.user || '').trim().toLowerCase();
+    const pass = (body.pass || '').trim();
+    const role = body.role || 'admin';
+
+    if ((db.users || []).find(x => x.user.toLowerCase() === user)) {
+        return res.status(400).json({ error: "Username sudah terdaftar" });
     }
-    next();
-});
+    db.users.push({ user, pass, role });
+    res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
+};
 
 // ================= HANDLER CRUD ADMIN =================
 app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
@@ -128,12 +130,18 @@ app.delete(['/api/admin/:tipe/:id', '/admin/:tipe/:id'], (req, res) => {
     }
 });
 
-// Penanganan Rute Auth Universal (Kebal Terhadap Prefix Vercel)
+// Penanganan Rute Auth Universal
 app.post('*', (req, res, next) => {
-    if (req.url.includes('login') || (req.body && req.body.user && req.body.pass && !req.body.role)) {
+    let body = req.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) {}
+    }
+    body = body || {};
+
+    if (req.url.includes('login') || (body.user && body.pass && !body.role)) {
         return handleLogin(req, res);
     }
-    if (req.url.includes('register') || (req.body && req.body.role)) {
+    if (req.url.includes('register') || (body.user && body.pass && body.role)) {
         return handleRegister(req, res);
     }
     next();
