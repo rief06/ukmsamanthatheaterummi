@@ -1,7 +1,6 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/:match*", "destination": "/api" },
     { "source": "/admin", "destination": "/frontend/admin.html" },
     { "source": "/admin.html", "destination": "/frontend/admin.html" },
     { "source": "/", "destination": "/frontend/index.html" },

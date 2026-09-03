@@ -73,6 +73,73 @@ const handleRegister = (req, res) => {
     res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
 };
 
+// ================= HANDLERS PESAN & CHECKOUT =================
+const handlePesan = (req, res) => {
+    let body = req.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) {}
+    }
+    body = body || {};
+    const { nama, kontak, isi } = body;
+    const baru = { id: Date.now(), nama, kontak, isi, tgl: new Date().toLocaleDateString('id-ID') };
+    db.pesan.push(baru);
+    res.status(201).json({ message: "Pesan terkirim", data: baru });
+};
+
+const handleCheckout = (req, res) => {
+    let body = req.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) {}
+    }
+    body = body || {};
+    const { jadwalId, nama, email, wa } = body;
+    
+    // Cari jadwal atau gunakan jadwal pertama jika id tidak spesifik
+    const j = (db.jadwal || []).find(x => x.id == jadwalId) || (db.jadwal || [])[0];
+    if (!j) return res.status(404).json({ error: "Jadwal belum dibuat oleh admin" });
+
+    const tiketTersedia = (j.tiketList || []).find(t => t.status === 'Tersedia');
+    if (!tiketTersedia) return res.status(400).json({ error: "Tiket habis" });
+
+    tiketTersedia.nama = nama;
+    tiketTersedia.email = email;
+    tiketTersedia.wa = wa;
+    tiketTersedia.status = 'Pending';
+
+    res.json({ message: "Tiket berhasil dibooking", kode: tiketTersedia.kode });
+};
+
+// Pasang rute eksplisit
+app.post(['/api/public/pesan', '/public/pesan', '/api/pesan', '/pesan'], handlePesan);
+app.post(['/api/public/checkout', '/public/checkout', '/api/checkout', '/checkout'], handleCheckout);
+
+// Penanganan Rute POST Universal (Mendeteksi dari isi payload data)
+app.post('*', (req, res, next) => {
+    let body = req.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) {}
+    }
+    body = body || {};
+
+    // 1. Pesan Masuk
+    if (req.url.includes('pesan') || (body.nama && body.kontak && body.isi)) {
+        return handlePesan(req, res);
+    }
+    // 2. Checkout Tiket
+    if (req.url.includes('checkout') || (body.jadwalId && body.email) || (body.email && body.wa)) {
+        return handleCheckout(req, res);
+    }
+    // 3. Login
+    if (req.url.includes('login') || (body.user && body.pass && !body.role)) {
+        return handleLogin(req, res);
+    }
+    // 4. Register
+    if (req.url.includes('register') || (body.user && body.pass && body.role)) {
+        return handleRegister(req, res);
+    }
+    next();
+});
+
 // ================= HANDLER CRUD ADMIN =================
 app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
     db.jadwal.push(req.body);
