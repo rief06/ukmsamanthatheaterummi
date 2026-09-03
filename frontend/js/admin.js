@@ -184,34 +184,32 @@ window.hapusData = async function(tipe, id) {
     }
 };
 
-// --- AUTH & TAB TOGGLE ---
+// --- LOGIKA AUTH & LOGIN ---
 const loginSect = document.getElementById('login-section');
 const dashSect = document.getElementById('dashboard-section');
 
-document.getElementById('tab-login')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    this.className = "w-1/2 pb-2 text-red-600 border-b-2 border-red-600 font-bold text-sm";
-    document.getElementById('tab-register').className = "w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300";
-    document.getElementById('login-form')?.classList.remove('hidden');
-    document.getElementById('register-form')?.classList.add('hidden');
-});
+function bukaDashboard() {
+    if (loginSect) {
+        loginSect.style.display = 'none';
+        loginSect.classList.remove('flex');
+        loginSect.classList.add('hidden');
+    }
+    if (dashSect) {
+        dashSect.style.display = 'flex';
+        dashSect.classList.remove('hidden');
+        dashSect.classList.add('flex');
+    }
+}
 
-document.getElementById('tab-register')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    this.className = "w-1/2 pb-2 text-red-600 border-b-2 border-red-600 font-bold text-sm";
-    document.getElementById('tab-login').className = "w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300";
-    document.getElementById('register-form')?.classList.remove('hidden');
-    document.getElementById('login-form')?.classList.add('hidden');
-});
-
+// Cek apakah sudah login sebelumnya
 let activeUser = JSON.parse(sessionStorage.getItem('active_user'));
 if (activeUser) {
-    loginSect?.classList.add('hidden');
-    dashSect?.classList.remove('hidden');
+    bukaDashboard();
     applyRoleRestrictions(activeUser.role);
     fetchAdminData();
 }
 
+// SUBMIT FORM LOGIN
 document.getElementById('login-form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const u = document.getElementById('l-user').value.trim();
@@ -223,21 +221,32 @@ document.getElementById('login-form')?.addEventListener('submit', async function
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user: u, pass: p })
         });
-        const result = await res.json();
+        
+        const text = await res.text();
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (jsonErr) {
+            alert(`⚠️ Respons Server (Status ${res.status}):\n${text.substring(0, 250)}`);
+            return;
+        }
 
         if (res.ok && result.success) {
             sessionStorage.setItem('active_user', JSON.stringify(result.user));
             activeUser = result.user;
-            loginSect?.classList.add('hidden');
-            dashSect?.classList.remove('hidden');
+            
+            // Sembunyikan panel login & tampilkan dashboard
+            bukaDashboard();
             applyRoleRestrictions(result.user.role);
             fetchAdminData();
+            
+            alert('✅ Berhasil masuk! Selamat datang, ' + result.user.user);
         } else {
             alert('❌ ' + (result.error || 'Username atau Password Salah!'));
         }
     } catch (err) {
         console.error(err);
-        alert('❌ Gagal menghubungi server backend.');
+        alert('❌ Gagal menghubungi server: ' + err.message);
     }
 });
 
