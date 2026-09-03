@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UKM Teater SAMANTHA - Universitas Muhammadiyah Sukabumi</title>
+    <title>UKM SAMANTHA Theater - Universitas Muhammadiyah Sukabumi</title>
+    <link rel="icon" type="image/png" href="/frontend/gambar/Samantha Icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -83,6 +84,7 @@
                     <button class="filter-btn active bg-brand-red text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg" data-filter="all">Semua</button>
                     <button class="filter-btn bg-brand-dark text-gray-300 px-6 py-2 rounded-full text-sm font-bold border border-gray-800 hover:border-brand-red transition" data-filter="Pementasan">Pementasan</button>
                     <button class="filter-btn bg-brand-dark text-gray-300 px-6 py-2 rounded-full text-sm font-bold border border-gray-800 hover:border-brand-red transition" data-filter="Latihan">Latihan & BTS</button>
+                    <button class="filter-btn bg-brand-dark text-gray-300 px-6 py-2 rounded-full text-sm font-bold border border-gray-800 hover:border-brand-red transition" data-filter="Random">Random Moment</button>
                 </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="pub-galeri"></div>
@@ -120,7 +122,7 @@
                         <div class="flex flex-col gap-4 text-gray-300">
                             <p class="flex items-center gap-4"><i class="fa-solid fa-envelope text-brand-red text-xl"></i> <span id="pub-email"></span></p>
                             <p class="flex items-center gap-4"><i class="fa-solid fa-phone text-brand-red text-xl"></i> <span id="pub-tlp"></span></p>
-                            <p class="flex items-start gap-4"><i class="fa-solid fa-location-dot text-brand-red text-xl mt-1"></i> Universitas Muhammadiyah Sukabumi (UMMI)<br>Jl. R. Syamsudin, S.H. No. 59, Cikole.</p>
+                            <p class="flex items-start gap-4"><i class="fa-solid fa-location-dot text-brand-red text-xl mt-1"></i> Universitas Muhammadiyah Sukabumi<br>Jl. R. Syamsudin, S.H. No. 59, Cikole.</p>
                         </div>
                     </div>
                     <!-- PETA GOOGLE MAPS -->
@@ -132,7 +134,7 @@
                 <!-- Form Pesan -->
                 <div class="bg-brand-dark p-8 border border-gray-800 rounded-xl shadow-2xl relative">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-red to-transparent"></div>
-                    <h3 class="text-2xl font-bold text-white mb-6">Tinggalkan Pesan</h3>
+                    <h3 class="text-2xl font-bold text-white mb-6">Pesan Untuk Kami</h3>
                     <form id="form-pesan">
                         <div class="mb-4">
                             <label class="block text-gray-400 text-xs font-bold mb-2">Nama</label>
@@ -178,7 +180,7 @@
                 <p class="text-xs text-gray-400 text-center px-4">Transfer ke QR di atas, simpan buktinya, lalu isi form.</p>
             </div>
             <div class="w-full md:w-1/2 p-8 bg-gray-900">
-                <h3 class="text-xl font-bold text-white mb-6 border-b border-gray-800 pb-2">Data Diri Pembeli</h3>
+                <h3 class="text-xl font-bold text-white mb-6 border-b border-gray-800 pb-2">Data Diri</h3>
                 <form id="form-checkout">
                     <input type="hidden" id="co-id-jadwal">
                     <div class="mb-4">

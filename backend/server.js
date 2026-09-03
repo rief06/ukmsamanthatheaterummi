@@ -205,14 +205,14 @@ app.post(['/api/admin/tiket/manual', '/admin/tiket/manual'], (req, res) => {
     res.status(201).json({ success: true, message: "Tiket OTS berhasil diterbitkan!", kode: tiketTersedia.kode, tiket: tiketTersedia });
 });
 
-// Manajemen Petugas
+// Manajemen 
 app.post(['/api/admin/users', '/admin/users'], (req, res) => {
     const { user, pass, role } = req.body;
     if ((db.users || []).find(x => x.user.toLowerCase() === user.toLowerCase())) {
         return res.status(400).json({ error: "Username sudah terdaftar!" });
     }
     db.users.push({ user, pass, role: role || 'admin' });
-    res.status(201).json({ success: true, message: "Petugas baru berhasil ditambahkan!" });
+    res.status(201).json({ success: true, message: "Akun baru berhasil ditambahkan!" });
 });
 
 app.delete(['/api/admin/users/:user', '/admin/users/:user'], (req, res) => {

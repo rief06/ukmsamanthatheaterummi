@@ -229,10 +229,10 @@ function renderUI() {
                 </div>`).join('');
         }
 
-        // Render Akun Petugas
+        // Render Akun
         const tUsers = document.getElementById('tabel-users');
         if (tUsers) {
-            const roleLabels = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: "Divisi PDD" };
+            const roleLabels = { admin: "Super Admin", support: "Support", sekre: "Sekretaris", media: "Media" };
             tUsers.innerHTML = (db.users || []).map(u => `
                 <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
                     <td class="p-4 font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-circle text-gray-500"></i> ${u.user}</td>
@@ -364,12 +364,12 @@ function applyRoleRestrictions(role) {
     if (role === 'sekre') {
         document.getElementById('nav-tiket').classList.add('hidden');
         document.getElementById('nav-galeri').classList.add('hidden');
-    } else if (role === 'pdd') {
+    } else if (role === 'media') {
         document.getElementById('nav-sdm').classList.add('hidden');
         document.getElementById('nav-pesan').classList.add('hidden');
         document.getElementById('nav-setup').classList.add('hidden');
     }
-    const roleName = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: "Divisi PDD" };
+    const roleName = { admin: "Super Admin", support: "Support", sekre: "Sekretaris", media: "Media" };
     const rDisplay = document.getElementById('sidebar-role-display');
     if (rDisplay) rDisplay.innerText = roleName[role] || role;
 }
@@ -872,7 +872,7 @@ window.exportCSVOprec = function() {
     link.click();
 };
 
-// --- 7. MANAJEMEN AKUN PETUGAS (SUPER ADMIN) ---
+// --- 7. MANAJEMEN AKUN (SUPER ADMIN) ---
 document.getElementById('form-tambah-user')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const payload = {
@@ -898,7 +898,7 @@ document.getElementById('form-tambah-user')?.addEventListener('submit', async fu
 });
 
 window.hapusUser = async function(username) {
-    if (confirm(`Yakin ingin menghapus akun petugas "${username}"?`)) {
+    if (confirm(`Yakin ingin menghapus akun"${username}"?`)) {
         try {
             const res = await fetch(`${API_BASE_URL}/admin/users/${username}`, { method: 'DELETE' });
             const result = await res.json();

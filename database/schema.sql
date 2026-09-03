@@ -1,11 +1,11 @@
 -- database/schema.sql
 
--- 1. Tabel Pengguna (Admin & Petugas)
+-- 1. Tabel Pengguna (Admin)
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'ketum', 'sekre', 'pdd') DEFAULT 'admin',
+    role ENUM('admin', 'support', 'sekre', 'media') DEFAULT 'admin',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
