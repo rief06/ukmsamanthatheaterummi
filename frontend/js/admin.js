@@ -1,6 +1,6 @@
 // frontend/js/admin.js
 
-const API_BASE_URL = window.API_BASE_URL || "/api";
+var API_BASE_URL = window.API_BASE_URL || "/api";
 let db = { users: [], profil: {}, prestasi: [], jadwal: [], galeri: [], anggota: [], pendaftar: [], pesan: [] };
 
 // --- FUNGSI KOMPRESI GAMBAR ---
