@@ -2,6 +2,7 @@
 node_modules/
 dist/
 build/
+gambar/
 
 # Lingkungan & Kunci Rahasia
 .env
