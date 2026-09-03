@@ -23,7 +23,7 @@
                 <button type="button" id="tab-login" class="w-1/2 pb-2 text-red-600 border-b-2 border-red-600 font-bold text-sm">Login</button>
                 <button type="button" id="tab-register" class="w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300">Buat Akun Baru</button>
             </div>
-            <form id="login-form">
+            <form id="login-form" onsubmit="event.preventDefault();">
                 <input type="text" id="l-user" placeholder="Username (Default: admin)" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
                 <input type="password" id="l-pass" placeholder="Password (Default: admin123)" class="w-full bg-black border border-gray-800 px-4 py-3 mb-6 rounded outline-none focus:border-red-600" required>
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold rounded hover:bg-red-700 shadow-lg transition">Masuk Dashboard</button>
@@ -332,7 +332,7 @@
     </div>
 
     <!-- ================= PEMANGGILAN SCRIPT EKSTERNAL ================= -->
-    <script src="/js/config.js"></script>
-    <script src="/js/admin.js"></script>
+    <script src="/frontend/js/config.js"></script>
+    <script src="/frontend/js/admin.js"></script>
 </body>
 </html>
