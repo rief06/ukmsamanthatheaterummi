@@ -2,7 +2,6 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,26 +35,39 @@ let db = {
     pesan: []
 };
 
-// ================= 1. ROUTES AUTH =================
+// ================= HANDLERS AUTH =================
 const handleLogin = (req, res) => {
-    const { user, pass } = req.body;
+    const { user, pass } = req.body || {};
     const u = (db.users || []).find(x => x.user === user && x.pass === pass);
     if (!u) return res.status(401).json({ error: "Username atau Password salah" });
     res.json({ success: true, user: { user: u.user, role: u.role } });
 };
-app.post(['/api/auth/login', '/auth/login'], handleLogin);
 
 const handleRegister = (req, res) => {
-    const { user, pass, role } = req.body;
+    const { user, pass, role } = req.body || {};
     if ((db.users || []).find(x => x.user === user)) {
         return res.status(400).json({ error: "Username sudah terdaftar" });
     }
     db.users.push({ user, pass, role });
     res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
 };
-app.post(['/api/auth/register', '/auth/register'], handleRegister);
 
-// ================= 2. ROUTES PUBLIC =================
+// Rute fleksibel: cocokkan login & register apapun format URL-nya
+app.post(['/api/auth/login', '/auth/login', '/api/login'], handleLogin);
+app.post(['/api/auth/register', '/auth/register', '/api/register'], handleRegister);
+
+// Fallback cerdas jika Vercel mengirim rute POST apa pun yang memuat data login/register
+app.post('*', (req, res, next) => {
+    if (req.url.includes('login') || (req.body && req.body.user && req.body.pass && !req.body.role)) {
+        return handleLogin(req, res);
+    }
+    if (req.url.includes('register') || (req.body && req.body.role)) {
+        return handleRegister(req, res);
+    }
+    next();
+});
+
+// ================= HANDLERS PUBLIC & ADMIN =================
 app.get(['/api/public/data', '/public/data'], (req, res) => {
     res.json({
         profil: db.profil,
@@ -89,74 +101,26 @@ app.post(['/api/public/checkout', '/public/checkout'], (req, res) => {
     res.json({ message: "Tiket berhasil dibooking", kode: tiketTersedia.kode });
 });
 
-// ================= 3. ROUTES ADMIN CRUD =================
 app.get(['/api/admin/all', '/admin/all'], (req, res) => {
     res.json(db);
 });
 
-app.put(['/api/admin/profil', '/admin/profil'], (req, res) => {
-    db.profil = { ...db.profil, ...req.body };
-    res.json({ success: true, message: "Profil diperbarui" });
-});
-
-app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
-    db.jadwal.push(req.body);
-    res.status(201).json({ success: true, message: "Event berhasil dibuat" });
-});
-
-app.post(['/api/admin/anggota', '/admin/anggota'], (req, res) => {
-    const { id, nama, divisi, status, foto } = req.body;
-    if (id) {
-        const idx = db.anggota.findIndex(a => a.id == id);
-        if (idx !== -1) db.anggota[idx] = { ...db.anggota[idx], nama, divisi, status, foto };
-    } else {
-        db.anggota.push({ id: Date.now(), nama, divisi, status, foto });
+// Fallback untuk GET data admin / public
+app.get('*', (req, res, next) => {
+    if (req.url.includes('admin') && req.url.includes('all')) return res.json(db);
+    if (req.url.includes('public') && req.url.includes('data')) {
+        return res.json({
+            profil: db.profil,
+            prestasi: db.prestasi,
+            galeri: db.galeri,
+            anggota: (db.anggota || []).filter(a => a.status === 'Aktif'),
+            jadwal: db.jadwal
+        });
     }
-    res.json({ success: true });
-});
-
-app.post(['/api/admin/galeri', '/admin/galeri'], (req, res) => {
-    db.galeri.push({ id: Date.now(), ...req.body });
-    res.status(201).json({ success: true });
-});
-
-app.post(['/api/admin/prestasi', '/admin/prestasi'], (req, res) => {
-    db.prestasi.push({ id: Date.now(), ...req.body });
-    res.status(201).json({ success: true });
-});
-
-app.post(['/api/admin/pendaftar-sync', '/admin/pendaftar-sync'], (req, res) => {
-    const { data } = req.body;
-    db.pendaftar = data;
-    res.json({ success: true, count: data.length });
-});
-
-app.put(['/api/admin/tiket/status', '/admin/tiket/status'], (req, res) => {
-    const { jadwalId, kode, status } = req.body;
-    const j = db.jadwal.find(x => x.id == jadwalId);
-    if (j) {
-        const t = (j.tiketList || []).find(x => x.kode === kode);
-        if (t) t.status = status;
+    // Rute halaman tampilan
+    if (req.url.startsWith('/admin')) {
+        return res.sendFile(path.join(__dirname, '../frontend/admin.html'));
     }
-    res.json({ success: true });
-});
-
-app.delete(['/api/admin/:tipe/:id', '/admin/:tipe/:id'], (req, res) => {
-    const { tipe, id } = req.params;
-    if (db[tipe]) {
-        db[tipe] = db[tipe].filter(item => item.id != id);
-        res.json({ success: true, message: `Data ${tipe} dihapus` });
-    } else {
-        res.status(400).json({ error: "Tipe data tidak valid" });
-    }
-});
-
-// ================= 4. FALLBACK FRONTEND ROUTE (PALING BAWAH) =================
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/admin.html'));
-});
-
-app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 

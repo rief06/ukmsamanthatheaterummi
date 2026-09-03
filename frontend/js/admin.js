@@ -231,34 +231,43 @@ if (activeUser) {
     fetchAdminData();
 }
 
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const u = document.getElementById('l-user').value;
-    const p = document.getElementById('l-pass').value;
+// SUBMIT LOGIN KE BACKEND
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const u = document.getElementById('l-user').value.trim();
+            const p = document.getElementById('l-pass').value.trim();
 
-    try {
-        const res = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user: u, pass: p })
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: u, pass: p })
+                });
+
+                const text = await res.text();
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseErr) {
+                    alert(`❌ Server Respon (Status ${res.status}):\n${text.substring(0, 200)}`);
+                    return;
+                }
+
+                if (res.ok && result.success) {
+                    sessionStorage.setItem('active_user', JSON.stringify(result.user));
+                    activeUser = result.user;
+                    loginSect.classList.add('hidden');
+                    dashSect.classList.remove('hidden');
+                    applyRoleRestrictions(result.user.role);
+                    fetchAdminData();
+                } else {
+                    alert('❌ ' + (result.error || 'Username atau Password Salah!'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('❌ Gagal koneksi (Network Error): ' + err.message);
+            }
         });
-        const result = await res.json();
-
-        if (res.ok && result.success) {
-            sessionStorage.setItem('active_user', JSON.stringify(result.user));
-            activeUser = result.user;
-            loginSect.classList.add('hidden');
-            dashSect.classList.remove('hidden');
-            applyRoleRestrictions(result.user.role);
-            fetchAdminData();
-        } else {
-            alert('❌ ' + (result.error || 'Username atau Password Salah!'));
-        }
-    } catch (err) {
-        console.error(err);
-        alert('❌ Gagal menghubungi server: ' + err.message);
-    }
-});
 
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
