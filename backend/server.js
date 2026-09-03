@@ -15,7 +15,9 @@ app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
 // --- DATABASE MEMORY ---
 let db = {
-    users: [{ user: "admin", pass: "admin123", role: "admin" }],
+    users: [
+        { user: "admin", pass: "admin123", role: "admin" }
+    ],
     profil: {
         nama: "TEATER SAMANTHA",
         sejarah: "Wadah berekspresi seni teater.",
@@ -36,7 +38,7 @@ let db = {
     pesan: []
 };
 
-// ================= 1. HANDLERS AUTH =================
+// ================= 1. AUTH HANDLERS =================
 const handleLogin = (req, res) => {
     let body = req.body;
     if (typeof body === 'string') {
@@ -69,7 +71,7 @@ const handleRegister = (req, res) => {
     res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
 };
 
-// ================= 2. HANDLERS PESAN & CHECKOUT =================
+// ================= 2. PUBLIC HANDLERS =================
 const handlePesan = (req, res) => {
     let body = req.body;
     if (typeof body === 'string') {
@@ -103,7 +105,8 @@ const handleCheckout = (req, res) => {
     res.json({ message: "Tiket berhasil dibooking", kode: tiketTersedia.kode });
 };
 
-// ================= 3. HANDLERS CRUD ADMIN =================
+// ================= 3. ADMIN CRUD & FITUR BARU =================
+// Buat Jadwal Event
 app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
     let body = req.body;
     if (typeof body === 'string') {
@@ -113,6 +116,63 @@ app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
     res.status(201).json({ success: true, message: "Event berhasil dibuat" });
 });
 
+// Check-In Tiket & Simpan Catatan Penonton
+app.put(['/api/admin/tiket/checkin', '/admin/tiket/checkin'], (req, res) => {
+    const { kode, catatan } = req.body;
+    for (let j of db.jadwal) {
+        const t = (j.tiketList || []).find(x => x.kode === kode);
+        if (t) {
+            t.checkIn = true;
+            t.checkInTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if (catatan !== undefined) t.catatan = catatan;
+            return res.json({ success: true, message: "Check-in penonton berhasil!", tiket: t });
+        }
+    }
+    res.status(404).json({ error: "Tiket tidak ditemukan" });
+});
+
+// Tiketing Manual (Penjualan Tiket OTS)
+app.post(['/api/admin/tiket/manual', '/admin/tiket/manual'], (req, res) => {
+    const { jadwalId, nama, email, wa, catatan, autoCheckIn } = req.body;
+    const j = (db.jadwal || []).find(x => x.id == jadwalId) || db.jadwal[0];
+    if (!j) return res.status(404).json({ error: "Pilih event pementasan terlebih dahulu" });
+
+    const tiketTersedia = (j.tiketList || []).find(t => t.status === 'Tersedia');
+    if (!tiketTersedia) return res.status(400).json({ error: "Kuota tiket event ini sudah habis!" });
+
+    tiketTersedia.nama = nama || "Penonton OTS";
+    tiketTersedia.email = email || "-";
+    tiketTersedia.wa = wa || "-";
+    tiketTersedia.status = "Lunas";
+    tiketTersedia.catatan = catatan || "Pembelian Tiket Langsung (OTS)";
+    if (autoCheckIn) {
+        tiketTersedia.checkIn = true;
+        tiketTersedia.checkInTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    res.status(201).json({ success: true, message: "Tiket OTS berhasil diterbitkan!", kode: tiketTersedia.kode, tiket: tiketTersedia });
+});
+
+// Manajemen Akun Petugas oleh Super Admin
+app.post(['/api/admin/users', '/admin/users'], (req, res) => {
+    const { user, pass, role } = req.body;
+    if ((db.users || []).find(x => x.user.toLowerCase() === user.toLowerCase())) {
+        return res.status(400).json({ error: "Username sudah terdaftar!" });
+    }
+    db.users.push({ user, pass, role: role || 'admin' });
+    res.status(201).json({ success: true, message: "Petugas baru berhasil ditambahkan!" });
+});
+
+app.delete(['/api/admin/users/:user', '/admin/users/:user'], (req, res) => {
+    const u = req.params.user;
+    if (u.toLowerCase() === 'admin') {
+        return res.status(400).json({ error: "Akun Super Admin utama tidak boleh dihapus!" });
+    }
+    db.users = (db.users || []).filter(x => x.user !== u);
+    res.json({ success: true, message: `Akun ${u} berhasil dihapus!` });
+});
+
+// SDM Anggota
 app.post(['/api/admin/anggota', '/admin/anggota'], (req, res) => {
     let body = req.body || {};
     const { id, nama, divisi, status, foto } = body;
@@ -125,6 +185,7 @@ app.post(['/api/admin/anggota', '/admin/anggota'], (req, res) => {
     res.json({ success: true });
 });
 
+// Galeri & Prestasi
 app.post(['/api/admin/galeri', '/admin/galeri'], (req, res) => {
     db.galeri.push({ id: Date.now(), ...req.body });
     res.status(201).json({ success: true });
@@ -135,11 +196,13 @@ app.post(['/api/admin/prestasi', '/admin/prestasi'], (req, res) => {
     res.status(201).json({ success: true });
 });
 
+// Sinkronisasi Oprec
 app.post(['/api/admin/pendaftar-sync', '/admin/pendaftar-sync'], (req, res) => {
     db.pendaftar = req.body.data || [];
     res.json({ success: true, count: db.pendaftar.length });
 });
 
+// Status Tiket Lunas / Batal
 app.put(['/api/admin/tiket/status', '/admin/tiket/status'], (req, res) => {
     const { jadwalId, kode, status } = req.body;
     const j = db.jadwal.find(x => x.id == jadwalId);
@@ -165,7 +228,7 @@ app.delete(['/api/admin/:tipe/:id', '/admin/:tipe/:id'], (req, res) => {
     }
 });
 
-// Penanganan Rute POST Universal (Deteksi Otomatis Berdasarkan Isi Data)
+// Universal POST Catch-All
 app.post('*', (req, res, next) => {
     let body = req.body;
     if (typeof body === 'string') {
@@ -192,7 +255,7 @@ app.post('*', (req, res, next) => {
     next();
 });
 
-// ================= 4. GET ROUTES =================
+// GET Routes
 app.get(['/api/admin/all', '/admin/all'], (req, res) => res.json(db));
 app.get(['/api/public/data', '/public/data'], (req, res) => {
     res.json({

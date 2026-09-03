@@ -1,10 +1,8 @@
 // frontend/js/admin.js
 
-// (API_BASE_URL otomatis diambil dari config.js)
-
 let db = { users: [], profil: {}, prestasi: [], jadwal: [], galeri: [], anggota: [], pendaftar: [], pesan: [] };
 
-// --- FUNGSI KOMPRESI GAMBAR ---
+// --- KOMPRESI GAMBAR ---
 function processImage(file, callback) {
     if (!file) { callback(null); return; }
     const reader = new FileReader();
@@ -75,8 +73,11 @@ function renderUI() {
             }
         }
 
-        // Render Jadwal Event
+        // Render Jadwal Event & Opsi OTS
         const jContainer = document.getElementById('jadwal-container');
+        const otsSelect = document.getElementById('ots-jadwal');
+        if (otsSelect) otsSelect.innerHTML = (db.jadwal || []).map(j => `<option value="${j.id}">${j.judul} (Rp ${j.harga})</option>`).join('');
+
         if (jContainer) {
             jContainer.innerHTML = (db.jadwal || []).map(j => {
                 const trj = (j.tiketList || []).filter(t => t.status !== 'Tersedia').length;
@@ -171,6 +172,21 @@ function renderUI() {
                     <button type="button" onclick="hapusData('prestasi', ${p.id})" class="text-red-500 hover:bg-red-900/30 p-2 rounded transition"><i class="fa-solid fa-trash"></i></button>
                 </div>`).join('');
         }
+
+        // Render Akun Petugas (Super Admin)
+        const tUsers = document.getElementById('tabel-users');
+        if (tUsers) {
+            const roleLabels = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: "Divisi PDD" };
+            tUsers.innerHTML = (db.users || []).map(u => `
+                <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
+                    <td class="p-4 font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-circle text-gray-500"></i> ${u.user}</td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-bold rounded bg-red-900/30 text-red-400 border border-red-800">${roleLabels[u.role] || u.role}</span></td>
+                    <td class="p-4 text-center">
+                        ${u.user === 'admin' ? '<span class="text-xs text-gray-500 italic">Akun Utama</span>' : `<button type="button" onclick="hapusUser('${u.user}')" class="text-red-500 hover:text-white px-3 py-1 rounded bg-red-900/20 border border-red-900 text-xs font-bold"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>`}
+                    </td>
+                </tr>`).join('');
+        }
+
     } catch (err) { console.error(err); }
 }
 
@@ -190,29 +206,16 @@ const loginSect = document.getElementById('login-section');
 const dashSect = document.getElementById('dashboard-section');
 
 function bukaDashboard() {
-    if (loginSect) {
-        loginSect.style.display = 'none';
-        loginSect.classList.remove('flex');
-        loginSect.classList.add('hidden');
-    }
+    if (loginSect) loginSect.style.display = 'none';
     if (dashSect) {
         dashSect.style.display = 'flex';
         dashSect.classList.remove('hidden');
-        dashSect.classList.add('flex');
     }
 }
 
-// Cek apakah sudah login sebelumnya
 let activeUser = JSON.parse(sessionStorage.getItem('active_user'));
 if (activeUser) {
-    if (loginSect) {
-        loginSect.style.display = 'none';
-        loginSect.classList.add('hidden');
-    }
-    if (dashSect) {
-        dashSect.style.display = 'flex';
-        dashSect.classList.remove('hidden');
-    }
+    bukaDashboard();
     applyRoleRestrictions(activeUser.role);
     fetchAdminData();
 }
@@ -246,29 +249,15 @@ document.getElementById('login-form')?.addEventListener('submit', async function
         });
         const result = await res.json();
 
-        // 👉 GANTI MULAI DARI BARIS INI:
         if (res.ok && result.success) {
             sessionStorage.setItem('active_user', JSON.stringify(result.user));
             activeUser = result.user;
-            
-            // Sembunyikan panel login & tampilkan dashboard
-            if (loginSect) {
-                loginSect.style.display = 'none';
-                loginSect.classList.add('hidden');
-            }
-            if (dashSect) {
-                dashSect.style.display = 'flex';
-                dashSect.classList.remove('hidden');
-            }
-
+            bukaDashboard();
             applyRoleRestrictions(result.user.role);
             fetchAdminData();
-            alert('✅ Berhasil masuk!');
         } else {
             alert('❌ ' + (result.error || 'Username atau Password Salah!'));
         }
-        // 👈 SAMPAI DI SINI
-        
     } catch (err) {
         console.error(err);
         alert('❌ Gagal menghubungi server backend.');
@@ -304,6 +293,26 @@ document.getElementById('logout-btn')?.addEventListener('click', function() {
 });
 
 function applyRoleRestrictions(role) {
+    document.getElementById('nav-tiket').classList.remove('hidden');
+    document.getElementById('nav-sdm').classList.remove('hidden');
+    document.getElementById('nav-pesan').classList.remove('hidden');
+    document.getElementById('nav-galeri').classList.remove('hidden');
+    document.getElementById('nav-setup').classList.remove('hidden');
+
+    const navUsers = document.getElementById('nav-users');
+    if (navUsers) {
+        if (role === 'admin') navUsers.classList.remove('hidden');
+        else navUsers.classList.add('hidden');
+    }
+
+    if (role === 'sekre') {
+        document.getElementById('nav-tiket').classList.add('hidden');
+        document.getElementById('nav-galeri').classList.add('hidden');
+    } else if (role === 'pdd') {
+        document.getElementById('nav-sdm').classList.add('hidden');
+        document.getElementById('nav-pesan').classList.add('hidden');
+        document.getElementById('nav-setup').classList.add('hidden');
+    }
     const roleName = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: "Divisi PDD" };
     const rDisplay = document.getElementById('sidebar-role-display');
     if (rDisplay) rDisplay.innerText = roleName[role] || role;
@@ -335,68 +344,68 @@ function openModal(id) {
     if (overlay) overlay.classList.remove('hidden');
 }
 window.openModal = openModal;
-window.closeScannerModal = function() { if (overlay) overlay.classList.add('hidden'); stopScanner(); };
+window.closeScannerModal = function() {
+    if (overlay) overlay.classList.add('hidden');
+    stopScanner();
+};
 document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', closeScannerModal));
 
-// --- 1. BUAT EVENT & GENERATE BARCODE ---
-document.getElementById('form-jadwal')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const kuota = parseInt(document.getElementById('j-kuota').value);
-    const eventId = Date.now();
-    let tiketList = [];
-    for (let i = 1; i <= kuota; i++) {
-        let num = i.toString().padStart(3, '0');
-        tiketList.push({ kode: `STU-${eventId.toString().slice(-4)}-${num}`, status: 'Tersedia', nama: '', email: '', wa: '' });
-    }
-    const qrInput = document.getElementById('j-qr');
-    processImage(qrInput?.files?.[0], async function(base64) {
-        const payload = {
-            id: eventId,
-            judul: document.getElementById('j-judul').value,
-            tanggal: document.getElementById('j-tanggal').value,
-            lokasi: document.getElementById('j-lokasi').value,
-            harga: document.getElementById('j-harga').value,
-            kuota: kuota,
-            qrImage: base64 || "",
-            tiketList: tiketList
-        };
-        const res = await fetch(`${API_BASE_URL}/admin/jadwal`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-            alert(`✅ Event & ${kuota} Barcode Tiket berhasil dibuat!`);
-            if (overlay) overlay.classList.add('hidden');
-            document.getElementById('form-jadwal')?.reset();
-            fetchAdminData();
-        } else {
-            alert('❌ Gagal menyimpan event');
-        }
-    });
-});
-
-// --- 2. SCANNER BARCODE & VERIFIKASI ---
-let html5QrcodeScanner = null;
-window.startScanner = function() {
+// --- 1. KAMERA SCANNER LANGSUNG (DIRECT CAMERA STREAM) ---
+let html5QrCode = null;
+window.startScanner = async function() {
     openModal('modal-scanner');
-    if (!html5QrcodeScanner) {
-        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 150} }, false);
-        html5QrcodeScanner.render(
-            (decodedText) => {
-                const inp = document.getElementById('input-kode-tiket');
-                if (inp) inp.value = decodedText;
-                closeScannerModal();
-                document.getElementById('form-verifikasi')?.dispatchEvent(new Event('submit'));
-            },
-            () => {}
-        );
+    const readerEl = document.getElementById('reader');
+    if (readerEl) readerEl.innerHTML = '<span class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Membuka Kamera Belakang...</span>';
+
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+        html5QrCode = null;
+    }
+
+    try {
+        html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 15, qrbox: { width: 250, height: 150 }, aspectRatio: 1.777778 };
+
+        // Prioritas kamera belakang HP (environment), otomatis fallback kamera webcam
+        try {
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    document.getElementById('input-kode-tiket').value = decodedText;
+                    closeScannerModal();
+                    document.getElementById('form-verifikasi')?.dispatchEvent(new Event('submit'));
+                },
+                () => {}
+            );
+        } catch (camErr) {
+            await html5QrCode.start(
+                { facingMode: "user" },
+                config,
+                (decodedText) => {
+                    document.getElementById('input-kode-tiket').value = decodedText;
+                    closeScannerModal();
+                    document.getElementById('form-verifikasi')?.dispatchEvent(new Event('submit'));
+                },
+                () => {}
+            );
+        }
+    } catch (err) {
+        console.error(err);
+        if (readerEl) {
+            readerEl.innerHTML = `<div class="p-4 text-xs text-red-400 bg-black/60 rounded">⚠️ Izin kamera belum diberikan atau browser memblokirnya.<br>Silakan izinkan kamera di menu bar browser Anda atau ketik kode manual di bawah.</div>`;
+        }
     }
 };
-window.stopScanner = function() {
-    if (html5QrcodeScanner) { html5QrcodeScanner.clear().catch(e=>console.error(e)); html5QrcodeScanner = null; }
+
+window.stopScanner = async function() {
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+        html5QrCode = null;
+    }
 };
 
+// --- 2. VERIFIKASI BARCODE & CHECK-IN CATATAN PENONTON ---
 document.getElementById('form-verifikasi')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const val = document.getElementById('input-kode-tiket').value.trim().toUpperCase();
@@ -411,18 +420,93 @@ document.getElementById('form-verifikasi')?.addEventListener('submit', function(
     const barcodeUrl = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${val}&scale=2&includetext`;
 
     if (found && found.status === 'Lunas') {
-        box.className = 'p-4 rounded-lg border-2 mt-4 bg-green-900/20 border-green-500 text-green-400 text-sm shadow-xl flex flex-col items-center w-full';
-        box.innerHTML = `<i class="fa-solid fa-circle-check text-4xl mb-2"></i><br><strong class="text-lg">TIKET VALID & SAH!</strong><br><span class="text-white mt-2 block mb-4">Pemilik: ${found.nama} | Event: ${jJudul}</span><img src="${barcodeUrl}" class="p-2 bg-white rounded max-w-full">`;
+        const isAlreadyCheckedIn = found.checkIn;
+        box.className = 'p-4 rounded-lg border-2 mt-4 bg-green-900/20 border-green-500 text-white text-sm shadow-xl flex flex-col items-center w-full';
+        box.innerHTML = `
+            <i class="fa-solid fa-circle-check text-4xl text-green-400 mb-2"></i>
+            <strong class="text-lg text-green-400">TIKET VALID & LUNAS!</strong>
+            <span class="text-gray-300 mt-1 block">Pemilik: <b>${found.nama}</b> | Event: ${jJudul}</span>
+            <img src="${barcodeUrl}" class="p-2 bg-white rounded my-3 max-w-full">
+            
+            ${isAlreadyCheckedIn ? `
+                <div class="bg-red-900/40 border border-red-500 text-red-300 p-3 rounded mb-2 text-xs w-full text-center">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> <b>PERINGATAN: TIKET SUDAH DIPAKAI!</b><br>
+                    Waktu Masuk: <b>${found.checkInTime || '-'}</b><br>
+                    Catatan Kursi: <b>${found.catatan || '-'}</b>
+                </div>
+            ` : `
+                <div class="w-full bg-black/60 p-3 border border-gray-800 rounded mb-2">
+                    <label class="block text-[11px] font-bold text-gray-400 mb-1 text-left">Catatan Penonton / Nomor Kursi:</label>
+                    <input type="text" id="input-catatan-checkin" placeholder="Contoh: Baris A-12, VIP Pintu Barat" value="${found.catatan || ''}" class="w-full bg-gray-900 border border-gray-700 p-2 text-xs text-white rounded outline-none focus:border-green-500 mb-3">
+                    <button type="button" onclick="prosesCheckIn('${found.kode}')" class="w-full bg-green-600 hover:bg-green-500 text-white py-2.5 rounded font-bold text-xs shadow transition">
+                        <i class="fa-solid fa-door-open mr-1"></i> Konfirmasi Masuk (Check-In Sekarang)
+                    </button>
+                </div>
+            `}
+        `;
     } else if (found && found.status === 'Pending') {
         box.className = 'p-4 rounded-lg border-2 mt-4 bg-yellow-900/20 border-yellow-500 text-yellow-400 text-sm shadow-xl w-full';
-        box.innerHTML = `<i class="fa-solid fa-circle-exclamation text-4xl mb-2"></i><br><strong class="text-lg">TIKET BELUM DILUNASI</strong><br><span class="text-white mt-2 block">Silakan lunasi di bagian Admin Tiket.<br>Pemilik: ${found.nama}</span>`;
+        box.innerHTML = `<i class="fa-solid fa-circle-exclamation text-4xl mb-2"></i><br><strong class="text-lg">TIKET BELUM DILUNASI</strong><br><span class="text-white mt-2 block">Lunasi di Data Pembeli terlebih dahulu.<br>Pemilik: ${found.nama}</span>`;
     } else {
         box.className = 'p-4 rounded-lg border-2 mt-4 bg-red-900/20 border-red-500 text-red-400 text-sm shadow-xl w-full';
         box.innerHTML = `<i class="fa-solid fa-circle-xmark text-4xl mb-2"></i><br><strong class="text-lg">BARCODE SALAH / PALSU</strong>`;
     }
 });
 
-// --- 3. DATA PEMBELI & LUNAS EMAIL ---
+// Aksi Check-In Tiket
+window.prosesCheckIn = async function(kode) {
+    const catatan = document.getElementById('input-catatan-checkin')?.value.trim();
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/tiket/checkin`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kode, catatan })
+        });
+        const result = await res.json();
+        if (res.ok) {
+            alert('✅ Penonton berhasil Check-In masuk pementasan!');
+            fetchAdminData();
+            document.getElementById('form-verifikasi')?.dispatchEvent(new Event('submit'));
+        } else {
+            alert('❌ ' + result.error);
+        }
+    } catch(err) { alert('❌ Gagal check-in: ' + err.message); }
+};
+
+// --- 3. TIKETING MANUAL (OTS / ON THE SPOT) ---
+window.bukaModalOTS = function() {
+    if ((db.jadwal || []).length === 0) return alert('Silakan buat event pementasan terlebih dahulu!');
+    openModal('modal-ots');
+};
+
+document.getElementById('form-ots')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const payload = {
+        jadwalId: document.getElementById('ots-jadwal').value,
+        nama: document.getElementById('ots-nama').value.trim(),
+        wa: document.getElementById('ots-wa').value.trim(),
+        catatan: document.getElementById('ots-catatan').value.trim(),
+        autoCheckIn: document.getElementById('ots-autocheckin').checked
+    };
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/tiket/manual`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (res.ok) {
+            alert(`✅ Tiket OTS Berhasil Diterbitkan!\n\nKode Tiket: ${result.kode}\nStatus: LUNAS & ${payload.autoCheckIn ? 'SUDAH CHECK-IN' : 'BELUM MASUK'}`);
+            if (overlay) overlay.classList.add('hidden');
+            this.reset();
+            fetchAdminData();
+        } else {
+            alert('❌ ' + result.error);
+        }
+    } catch(err) { alert('❌ Gagal: ' + err.message); }
+});
+
+// --- 4. DATA PEMBELI ---
 window.bukaDataPembeli = function(idJadwal, judul) {
     const tTitle = document.getElementById('title-pembeli');
     if (tTitle) tTitle.innerText = "Event: " + judul;
@@ -432,18 +516,19 @@ window.bukaDataPembeli = function(idJadwal, judul) {
     const j = (db.jadwal || []).find(x => x.id == idJadwal);
     const terjualList = (j?.tiketList || []).filter(t => t.status !== 'Tersedia');
     if (terjualList.length === 0) {
-        tBody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-500">Belum ada tiket yang dipesan.</td></tr>';
+        tBody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-500">Belum ada tiket yang dipesan.</td></tr>';
     }
     terjualList.forEach(p => {
         const isL = p.status === 'Lunas';
         tBody.innerHTML += `
         <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
             <td class="p-4 font-mono font-bold text-red-500">${p.kode}</td>
-            <td class="p-4 font-bold text-white">${p.nama}</td>
-            <td class="p-4 text-xs text-gray-400">${p.email}<br>${p.wa}</td>
+            <td class="p-4 font-bold text-white">${p.nama}<br><span class="text-xs text-gray-400">${p.email} / ${p.wa}</span></td>
             <td class="p-4 font-bold ${isL?'text-green-500':'text-yellow-500'}">${p.status}</td>
+            <td class="p-4"><span class="px-2 py-1 text-xs rounded font-bold ${p.checkIn?'bg-green-900/40 text-green-400':'bg-gray-800 text-gray-400'}">${p.checkIn ? `Masuk (${p.checkInTime})` : 'Belum'}</span></td>
+            <td class="p-4 text-xs text-gray-400">${p.catatan || '-'}</td>
             <td class="p-4 text-center">
-                ${!isL ? `<button type="button" onclick="konfirmasiLunas(${j.id}, '${p.kode}')" class="bg-green-600 text-white px-4 py-2 rounded text-xs font-bold shadow hover:bg-green-500"><i class="fa-solid fa-paper-plane mr-1"></i> Lunas & Email Barcode</button>` : `<button type="button" onclick="batalLunas(${j.id}, '${p.kode}')" class="bg-gray-800 text-gray-400 px-4 py-2 rounded text-xs hover:text-white hover:bg-red-600">Batal Lunas</button>`}
+                ${!isL ? `<button type="button" onclick="konfirmasiLunas(${j.id}, '${p.kode}')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold shadow hover:bg-green-500"><i class="fa-solid fa-paper-plane mr-1"></i> Lunas</button>` : `<button type="button" onclick="batalLunas(${j.id}, '${p.kode}')" class="bg-gray-800 text-gray-400 px-3 py-1.5 rounded text-xs hover:text-white hover:bg-red-600">Batal Lunas</button>`}
             </td>
         </tr>`;
     });
@@ -464,7 +549,6 @@ window.konfirmasiLunas = async function(idJadwal, kode) {
         const subject = encodeURIComponent(`E-Ticket Pementasan: ${j.judul}`);
         const body = encodeURIComponent(`Halo ${t.nama},\n\nPembayaran tiket Anda telah dikonfirmasi!\n\nLakon: ${j.judul}\nKode Tiket: ${t.kode}\n\nSilakan tunjukkan link Barcode berikut saat check-in:\n${barcodeUrl}\n\nTerima kasih,\nTeater SAMANTHA`);
         window.location.href = `mailto:${t.email}?subject=${subject}&body=${body}`;
-        alert('✅ Tiket dilunaskan! Jendela pengiriman email barcode akan terbuka.');
         bukaDataPembeli(idJadwal, j.judul);
         renderUI();
     }
@@ -480,81 +564,41 @@ window.batalLunas = async function(idJadwal, kode) {
         const j = db.jadwal.find(x => x.id == idJadwal);
         const t = j.tiketList.find(x => x.kode === kode);
         t.status = 'Pending';
-        alert('Status tiket dibatalkan menjadi Pending.');
         bukaDataPembeli(idJadwal, j.judul);
         renderUI();
     }
 };
 
-// --- 4. KELOLA SDM ANGGOTA ---
-window.bukaModalAnggota = function(id = null) {
-    document.getElementById('form-anggota')?.reset();
-    const aId = document.getElementById('a-id'); if (aId) aId.value = '';
-    if (id) {
-        const a = (db.anggota || []).find(x => x.id === id);
-        if (a) {
-            if (aId) aId.value = a.id;
-            const aNama = document.getElementById('a-nama'); if (aNama) aNama.value = a.nama;
-            const aDiv = document.getElementById('a-divisi'); if (aDiv) aDiv.value = a.divisi;
-            const aStat = document.getElementById('a-status'); if (aStat) aStat.value = a.status;
-            const tAngg = document.getElementById('title-anggota'); if (tAngg) tAngg.innerText = "Edit Anggota";
-        }
-    } else {
-        const tAngg = document.getElementById('title-anggota'); if (tAngg) tAngg.innerText = "Tambah Anggota Baru";
-    }
-    openModal('modal-anggota');
-};
+// --- 5. TARIK DATA G-FORM / GOOGLE SHEETS (SMART CSV PARSER) ---
+function parseSmartCSV(text) {
+    if (!text) return [];
+    text = text.replace(/^\uFEFF/, '').trim();
+    
+    // Auto detect pemisah koma (,) atau titik koma (;)
+    const firstLine = text.split('\n')[0] || '';
+    const commaCount = (firstLine.match(/,/g) || []).length;
+    const semiCount = (firstLine.match(/;/g) || []).length;
+    const sep = semiCount > commaCount ? ';' : ',';
 
-document.getElementById('form-anggota')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const id = document.getElementById('a-id').value;
-    const fotoFile = document.getElementById('a-foto')?.files?.[0];
-    let data = {
-        id: id || null,
-        nama: document.getElementById('a-nama').value,
-        divisi: document.getElementById('a-divisi').value,
-        status: document.getElementById('a-status').value
-    };
-    if (fotoFile) {
-        processImage(fotoFile, function(base64) {
-            data.foto = base64;
-            simpanDataAnggotaBackend(data);
-        });
-    } else {
-        if (id) {
-            const existA = (db.anggota || []).find(x => x.id == id);
-            if (existA && existA.foto) data.foto = existA.foto;
-        }
-        simpanDataAnggotaBackend(data);
-    }
-});
-
-async function simpanDataAnggotaBackend(data) {
-    const res = await fetch(`${API_BASE_URL}/admin/anggota`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    if (res.ok) {
-        alert('✅ Data SDM Berhasil Disimpan.');
-        if (overlay) overlay.classList.add('hidden');
-        fetchAdminData();
-    }
-}
-
-// --- 5. OPREC GOOGLE SHEETS SYNC (CSV) ---
-function parseCSV(text) {
     let result = [], row = [], inQuotes = false, val = '';
     for (let i = 0; i < text.length; i++) {
         let char = text[i];
-        if (char === '"') { inQuotes = !inQuotes; }
-        else if (char === ',' && !inQuotes) { row.push(val.trim()); val = ''; }
-        else if ((char === '\n' || char === '\r') && !inQuotes) {
-            if (char === '\r' && text[i+1] === '\n') i++;
-            row.push(val.trim()); result.push(row); row = []; val = '';
+        if (char === '"') {
+            if (inQuotes && text[i + 1] === '"') { val += '"'; i++; }
+            else { inQuotes = !inQuotes; }
+        } else if (char === sep && !inQuotes) {
+            row.push(val.trim()); val = '';
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+            if (char === '\r' && text[i + 1] === '\n') i++;
+            row.push(val.trim());
+            if (row.some(c => c.length > 0)) result.push(row);
+            row = []; val = '';
         } else { val += char; }
     }
-    if (val || row.length > 0) { row.push(val.trim()); result.push(row); }
+    if (val || row.length > 0) {
+        row.push(val.trim());
+        if (row.some(c => c.length > 0)) result.push(row);
+    }
     return result;
 }
 
@@ -570,21 +614,24 @@ document.getElementById('form-import-oprec')?.addEventListener('submit', functio
             if (csvText.toLowerCase().includes('<!doctype') || csvText.toLowerCase().includes('<html')) {
                 throw new Error("Pastikan memilih format CSV saat Publish Google Sheets.");
             }
-            const lines = parseCSV(csvText);
+            const lines = parseSmartCSV(csvText);
             let imported = [];
+            
             for (let i = 1; i < lines.length; i++) {
                 const row = lines[i];
-                if (row.length < 5) continue;
+                if (row.length < 2) continue;
+                
                 imported.push({
                     id: Date.now() + i,
                     tgl: row[0] ? row[0].split(' ')[0] : '-',
                     nama: row || '-',
                     nim: row || '-',
-                    prodi: row || '-',
-                    wa: row || '-',
+                    prodi: row.length >= 5 ? (row || '-') : '-',
+                    wa: row[row.length - 1] || '-',
                     posisi: 'Calon Anggota'
                 });
             }
+
             const res = await fetch(`${API_BASE_URL}/admin/pendaftar-sync`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -652,7 +699,141 @@ window.exportCSVOprec = function() {
     link.click();
 };
 
-// --- 6. UPLOAD GALERI ---
+// --- 6. MANAJEMEN AKUN PETUGAS (SUPER ADMIN) ---
+document.getElementById('form-tambah-user')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const payload = {
+        user: document.getElementById('u-user').value.trim(),
+        pass: document.getElementById('u-pass').value.trim(),
+        role: document.getElementById('u-role').value
+    };
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (res.ok) {
+            alert('✅ ' + result.message);
+            this.reset();
+            fetchAdminData();
+        } else {
+            alert('❌ ' + result.error);
+        }
+    } catch(err) { alert('❌ Gagal: ' + err.message); }
+});
+
+window.hapusUser = async function(username) {
+    if (confirm(`Yakin ingin menghapus akun petugas "${username}"?`)) {
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/users/${username}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (res.ok) {
+                alert('✅ ' + result.message);
+                fetchAdminData();
+            } else {
+                alert('❌ ' + result.error);
+            }
+        } catch(err) { alert('❌ Gagal: ' + err.message); }
+    }
+};
+
+// --- 7. BUAT EVENT JADWAL ---
+document.getElementById('form-jadwal')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const kuota = parseInt(document.getElementById('j-kuota').value);
+    const eventId = Date.now();
+    let tiketList = [];
+    for (let i = 1; i <= kuota; i++) {
+        let num = i.toString().padStart(3, '0');
+        tiketList.push({ kode: `STU-${eventId.toString().slice(-4)}-${num}`, status: 'Tersedia', nama: '', email: '', wa: '', checkIn: false, catatan: '' });
+    }
+    const qrInput = document.getElementById('j-qr');
+    processImage(qrInput?.files?.[0], async function(base64) {
+        const payload = {
+            id: eventId,
+            judul: document.getElementById('j-judul').value,
+            tanggal: document.getElementById('j-tanggal').value,
+            lokasi: document.getElementById('j-lokasi').value,
+            harga: document.getElementById('j-harga').value,
+            kuota: kuota,
+            qrImage: base64 || "",
+            tiketList: tiketList
+        };
+        const res = await fetch(`${API_BASE_URL}/admin/jadwal`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            alert(`✅ Event & ${kuota} Barcode Tiket berhasil dibuat!`);
+            if (overlay) overlay.classList.add('hidden');
+            document.getElementById('form-jadwal')?.reset();
+            fetchAdminData();
+        } else {
+            alert('❌ Gagal menyimpan event');
+        }
+    });
+});
+
+// --- 8. KELOLA SDM ANGGOTA ---
+window.bukaModalAnggota = function(id = null) {
+    document.getElementById('form-anggota')?.reset();
+    const aId = document.getElementById('a-id'); if (aId) aId.value = '';
+    if (id) {
+        const a = (db.anggota || []).find(x => x.id === id);
+        if (a) {
+            if (aId) aId.value = a.id;
+            const aNama = document.getElementById('a-nama'); if (aNama) aNama.value = a.nama;
+            const aDiv = document.getElementById('a-divisi'); if (aDiv) aDiv.value = a.divisi;
+            const aStat = document.getElementById('a-status'); if (aStat) aStat.value = a.status;
+            const tAngg = document.getElementById('title-anggota'); if (tAngg) tAngg.innerText = "Edit Anggota";
+        }
+    } else {
+        const tAngg = document.getElementById('title-anggota'); if (tAngg) tAngg.innerText = "Tambah Anggota Baru";
+    }
+    openModal('modal-anggota');
+};
+
+document.getElementById('form-anggota')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const id = document.getElementById('a-id').value;
+    const fotoFile = document.getElementById('a-foto')?.files?.[0];
+    let data = {
+        id: id || null,
+        nama: document.getElementById('a-nama').value,
+        divisi: document.getElementById('a-divisi').value,
+        status: document.getElementById('a-status').value
+    };
+    if (fotoFile) {
+        processImage(fotoFile, function(base64) {
+            data.foto = base64;
+            simpanDataAnggotaBackend(data);
+        });
+    } else {
+        if (id) {
+            const existA = (db.anggota || []).find(x => x.id == id);
+            if (existA && existA.foto) data.foto = existA.foto;
+        }
+        simpanDataAnggotaBackend(data);
+    }
+});
+
+async function simpanDataAnggotaBackend(data) {
+    const res = await fetch(`${API_BASE_URL}/admin/anggota`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (res.ok) {
+        alert('✅ Data SDM Berhasil Disimpan.');
+        if (overlay) overlay.classList.add('hidden');
+        fetchAdminData();
+    }
+}
+
+// --- 9. UPLOAD GALERI ---
 document.getElementById('form-galeri')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const gFileInput = document.getElementById('g-file');
@@ -675,7 +856,7 @@ document.getElementById('form-galeri')?.addEventListener('submit', function(e) {
     });
 });
 
-// --- 7. PESAN INBOX ---
+// --- 10. PESAN INBOX ---
 window.bacaPesan = function(nama, kontak, isi) {
     const mNama = document.getElementById('msg-nama'); if (mNama) mNama.innerText = nama;
     const mKontak = document.getElementById('msg-kontak'); if (mKontak) mKontak.innerText = kontak;
@@ -685,7 +866,7 @@ window.bacaPesan = function(nama, kontak, isi) {
     openModal('modal-pesan');
 };
 
-// --- 8. PENGATURAN PROFIL & GAMBAR LENGKAP ---
+// --- 11. PENGATURAN PROFIL & PRESTASI ---
 document.getElementById('form-profil')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const payload = {
@@ -731,7 +912,6 @@ document.getElementById('form-profil')?.addEventListener('submit', async functio
     });
 });
 
-// --- 9. DATABASE PRESTASI ---
 document.getElementById('form-prestasi')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const payload = {
