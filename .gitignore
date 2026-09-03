@@ -2,7 +2,8 @@
 node_modules/
 dist/
 build/
-gambar/
+frontend/gambar/*
+!frontend/gambar/SAMANTHA_ICON.png
 
 # Lingkungan & Kunci Rahasia
 .env
