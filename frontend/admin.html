@@ -30,13 +30,12 @@
             </form>
             <form id="register-form" class="hidden">
                 <input type="text" id="r-user" placeholder="Username Baru" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
-                <input type="password" id="r-pass" placeholder="Password Baru" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
+                <input type="password" id="r-pass" placeholder="Password Baru" class="w-full bg-black border border-gray-800 px-4 py-3 mb-6 rounded outline-none focus:border-red-600" required>
                 <select id="r-role" class="w-full bg-black border border-gray-800 px-4 py-3 mb-6 rounded outline-none focus:border-red-600 text-sm" required>
                     <option value="" disabled selected>Pilih Role / Jabatan...</option>
-                    <option value="admin">Super Admin (Akses Penuh)</option>
-                    <option value="ketum">Ketua Umum (Akses Penuh)</option>
-                    <option value="sekre">Sekretaris (Hanya SDM & Pengaturan)</option>
-                    <option value="pdd">Divisi PDD (Hanya Tiket & Galeri)</option>
+                    <option value="ketum">KetUm</option>
+                    <option value="sekre">Sekre</option>
+                    <option value="pdd">KoDok</option>
                 </select>
                 <button type="submit" class="w-full bg-blue-600 text-white py-3 font-bold rounded hover:bg-blue-700 shadow-lg transition">Daftarkan Akun</button>
             </form>
@@ -55,16 +54,12 @@
             <button type="button" onclick="closeScannerModal()" class="w-full bg-gray-800 text-white py-3 rounded font-bold hover:bg-gray-700 border border-gray-700">Tutup Kamera</button>
         </div>
 
-        <!-- Modal Import GDrive (CSV) -->
+        <!-- Modal Import GDrive -->
         <div id="modal-import-oprec" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-lg p-6 relative m-auto rounded-lg">
             <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="text-xl font-bold mb-2 border-b border-gray-800 pb-2 text-blue-500"><i class="fa-solid fa-cloud-arrow-down mr-2"></i> Tarik Data G-Form (CSV)</h3>
             <div class="bg-blue-900/20 border border-blue-500/50 p-4 rounded mb-6 text-xs text-gray-300 leading-relaxed">
-                <strong>PANDUAN:</strong><br>
-                1. Buka File Jawaban Form di Google Sheets.<br>
-                2. Klik Menu <strong>File > Bagikan > Publikasikan ke web</strong>.<br>
-                3. Pilih format <strong>CSV (Nilai yang dipisahkan koma)</strong>.<br>
-                4. Salin link berakhiran <strong>/pub?output=csv</strong> ke bawah ini.
+                <strong>PANDUAN:</strong> Publikasikan Google Sheets ke web dalam format CSV, lalu copy link berakhiran <strong>/pub?output=csv</strong> ke bawah ini.
             </div>
             <form id="form-import-oprec">
                 <input type="url" id="import-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none focus:border-blue-500" required>
@@ -86,7 +81,7 @@
                     <input type="number" id="j-harga" placeholder="Harga Tiket (Rp)" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
                     <input type="number" id="j-kuota" placeholder="Jumlah Tiket Dibuat" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
                 </div>
-                <label class="block text-xs font-bold text-gray-400 mb-2">Upload QR Code Rekening (Muncul di Web Pembeli)</label>
+                <label class="block text-xs font-bold text-gray-400 mb-2">Upload QR Code Rekening</label>
                 <input type="file" id="j-qr" accept="image/*" class="w-full mb-6 bg-black border border-gray-800 p-2 text-sm rounded">
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Generate Barcode & Simpan Event</button>
             </form>
@@ -100,7 +95,7 @@
             <div class="overflow-y-auto max-h-96 border border-gray-800 rounded">
                 <table class="w-full text-left text-sm whitespace-nowrap">
                     <thead class="bg-black text-gray-400 sticky top-0 shadow z-10">
-                        <tr><th class="p-4">Kode Barcode</th><th class="p-4">Nama Pembeli</th><th class="p-4">Kontak (WA/Email)</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi Lunas</th></tr>
+                        <tr><th class="p-4">Kode Barcode</th><th class="p-4">Nama Pembeli</th><th class="p-4">Kontak</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi Lunas</th></tr>
                     </thead>
                     <tbody id="list-pembeli" class="text-gray-300"></tbody>
                 </table>
@@ -152,7 +147,7 @@
                     <option value="Latihan">Latihan & Moment</option>
                 </select>
                 <input type="file" id="g-file" accept="image/*" class="w-full mb-6 bg-black border border-gray-800 p-3 text-sm rounded" required>
-                <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Upload (Auto Compress)</button>
+                <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Upload</button>
             </form>
         </div>
 

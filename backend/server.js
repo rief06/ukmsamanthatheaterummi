@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
-// Melayani file statis frontend saat dijalankan lokal
+// Melayani file statis frontend saat lokal
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // --- DATABASE MEMORY ---
@@ -52,11 +52,64 @@ const handleRegister = (req, res) => {
     res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
 };
 
-// Rute fleksibel: cocokkan login & register apapun format URL-nya
-app.post(['/api/auth/login', '/auth/login', '/api/login'], handleLogin);
-app.post(['/api/auth/register', '/auth/register', '/api/register'], handleRegister);
+// ================= HANDLER CRUD ADMIN =================
+app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
+    db.jadwal.push(req.body);
+    res.status(201).json({ success: true, message: "Event berhasil dibuat" });
+});
 
-// Fallback cerdas jika Vercel mengirim rute POST apa pun yang memuat data login/register
+app.post(['/api/admin/anggota', '/admin/anggota'], (req, res) => {
+    const { id, nama, divisi, status, foto } = req.body;
+    if (id) {
+        const idx = db.anggota.findIndex(a => a.id == id);
+        if (idx !== -1) db.anggota[idx] = { ...db.anggota[idx], nama, divisi, status, foto };
+    } else {
+        db.anggota.push({ id: Date.now(), nama, divisi, status, foto });
+    }
+    res.json({ success: true });
+});
+
+app.post(['/api/admin/galeri', '/admin/galeri'], (req, res) => {
+    db.galeri.push({ id: Date.now(), ...req.body });
+    res.status(201).json({ success: true });
+});
+
+app.post(['/api/admin/prestasi', '/admin/prestasi'], (req, res) => {
+    db.prestasi.push({ id: Date.now(), ...req.body });
+    res.status(201).json({ success: true });
+});
+
+app.post(['/api/admin/pendaftar-sync', '/admin/pendaftar-sync'], (req, res) => {
+    db.pendaftar = req.body.data || [];
+    res.json({ success: true, count: db.pendaftar.length });
+});
+
+app.put(['/api/admin/tiket/status', '/admin/tiket/status'], (req, res) => {
+    const { jadwalId, kode, status } = req.body;
+    const j = db.jadwal.find(x => x.id == jadwalId);
+    if (j) {
+        const t = (j.tiketList || []).find(x => x.kode === kode);
+        if (t) t.status = status;
+    }
+    res.json({ success: true });
+});
+
+app.put(['/api/admin/profil', '/admin/profil'], (req, res) => {
+    db.profil = { ...db.profil, ...req.body };
+    res.json({ success: true, message: "Profil diperbarui" });
+});
+
+app.delete(['/api/admin/:tipe/:id', '/admin/:tipe/:id'], (req, res) => {
+    const { tipe, id } = req.params;
+    if (db[tipe]) {
+        db[tipe] = db[tipe].filter(item => item.id != id);
+        res.json({ success: true, message: `Data ${tipe} dihapus` });
+    } else {
+        res.status(400).json({ error: "Tipe data tidak valid" });
+    }
+});
+
+// Penanganan Rute Auth Universal (Kebal Terhadap Prefix Vercel)
 app.post('*', (req, res, next) => {
     if (req.url.includes('login') || (req.body && req.body.user && req.body.pass && !req.body.role)) {
         return handleLogin(req, res);
@@ -67,7 +120,8 @@ app.post('*', (req, res, next) => {
     next();
 });
 
-// ================= HANDLERS PUBLIC & ADMIN =================
+// Data Admin & Public GET
+app.get(['/api/admin/all', '/admin/all'], (req, res) => res.json(db));
 app.get(['/api/public/data', '/public/data'], (req, res) => {
     res.json({
         profil: db.profil,
@@ -78,53 +132,13 @@ app.get(['/api/public/data', '/public/data'], (req, res) => {
     });
 });
 
-app.post(['/api/public/pesan', '/public/pesan'], (req, res) => {
-    const { nama, kontak, isi } = req.body;
-    const baru = { id: Date.now(), nama, kontak, isi, tgl: new Date().toLocaleDateString('id-ID') };
-    db.pesan.push(baru);
-    res.status(201).json({ message: "Pesan terkirim", data: baru });
-});
-
-app.post(['/api/public/checkout', '/public/checkout'], (req, res) => {
-    const { jadwalId, nama, email, wa } = req.body;
-    const j = db.jadwal.find(x => x.id == jadwalId);
-    if (!j) return res.status(404).json({ error: "Jadwal tidak ditemukan" });
-
-    const tiketTersedia = (j.tiketList || []).find(t => t.status === 'Tersedia');
-    if (!tiketTersedia) return res.status(400).json({ error: "Tiket habis" });
-
-    tiketTersedia.nama = nama;
-    tiketTersedia.email = email;
-    tiketTersedia.wa = wa;
-    tiketTersedia.status = 'Pending';
-
-    res.json({ message: "Tiket berhasil dibooking", kode: tiketTersedia.kode });
-});
-
-app.get(['/api/admin/all', '/admin/all'], (req, res) => {
-    res.json(db);
-});
-
-// Fallback untuk GET data admin / public
-app.get('*', (req, res, next) => {
-    if (req.url.includes('admin') && req.url.includes('all')) return res.json(db);
-    if (req.url.includes('public') && req.url.includes('data')) {
-        return res.json({
-            profil: db.profil,
-            prestasi: db.prestasi,
-            galeri: db.galeri,
-            anggota: (db.anggota || []).filter(a => a.status === 'Aktif'),
-            jadwal: db.jadwal
-        });
-    }
-    // Rute halaman tampilan
+app.get('*', (req, res) => {
     if (req.url.startsWith('/admin')) {
         return res.sendFile(path.join(__dirname, '../frontend/admin.html'));
     }
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Listener lokal
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Backend server running on http://localhost:${PORT}`);
