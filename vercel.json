@@ -1,9 +1,10 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/api/:match*", "destination": "/api" },
     { "source": "/admin", "destination": "/frontend/admin.html" },
     { "source": "/admin.html", "destination": "/frontend/admin.html" },
-    { "source": "/", "destination": "/frontend/index.html" }
+    { "source": "/js/:path*", "destination": "/frontend/js/:path*" },
+    { "source": "/:path*", "destination": "/frontend/:path*" }
   ]
 }
