@@ -13,7 +13,7 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
-// --- DATABASE MEMORY ---
+// --- DATABASE MEMORY (DENGAN BACKUP RESTORE AUTO-SYNC) ---
 let db = {
     users: [
         { user: "admin", pass: "admin123", role: "admin" }
@@ -38,7 +38,23 @@ let db = {
     pesan: []
 };
 
-// ================= 1. AUTH HANDLERS =================
+// ================= 1. AUTO-RESTORE BACKUP API =================
+app.post(['/api/admin/restore-backup', '/admin/restore-backup'], (req, res) => {
+    const backup = req.body;
+    if (backup && typeof backup === 'object') {
+        if (backup.jadwal && backup.jadwal.length > 0) db.jadwal = backup.jadwal;
+        if (backup.anggota && backup.anggota.length > 0) db.anggota = backup.anggota;
+        if (backup.pendaftar && backup.pendaftar.length > 0) db.pendaftar = backup.pendaftar;
+        if (backup.prestasi && backup.prestasi.length > 0) db.prestasi = backup.prestasi;
+        if (backup.galeri && backup.galeri.length > 0) db.galeri = backup.galeri;
+        if (backup.profil && backup.profil.nama) db.profil = backup.profil;
+        if (backup.users && backup.users.length > 0) db.users = backup.users;
+        return res.json({ success: true, message: "Database berhasil dipulihkan dari cadangan!" });
+    }
+    res.status(400).json({ error: "Cadangan data tidak valid" });
+});
+
+// ================= 2. AUTH HANDLERS =================
 const handleLogin = (req, res) => {
     let body = req.body;
     if (typeof body === 'string') {
@@ -71,7 +87,7 @@ const handleRegister = (req, res) => {
     res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
 };
 
-// ================= 2. PUBLIC HANDLERS =================
+// ================= 3. PUBLIC HANDLERS =================
 const handlePesan = (req, res) => {
     let body = req.body;
     if (typeof body === 'string') {
@@ -105,8 +121,7 @@ const handleCheckout = (req, res) => {
     res.json({ message: "Tiket berhasil dibooking", kode: tiketTersedia.kode });
 };
 
-// ================= 3. ADMIN CRUD & FITUR BARU =================
-// Buat Jadwal Event
+// ================= 4. CRUD JADWAL & EDIT EVENT =================
 app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
     let body = req.body;
     if (typeof body === 'string') {
@@ -116,7 +131,44 @@ app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
     res.status(201).json({ success: true, message: "Event berhasil dibuat" });
 });
 
-// Check-In Tiket & Simpan Catatan Penonton
+// Update / Edit Event Pementasan
+app.put(['/api/admin/jadwal/:id', '/admin/jadwal/:id'], (req, res) => {
+    const id = req.params.id;
+    const { judul, tanggal, lokasi, harga, kuota, qrImage } = req.body;
+    const idx = (db.jadwal || []).findIndex(x => x.id == id);
+    if (idx === -1) return res.status(404).json({ error: "Event tidak ditemukan" });
+
+    const j = db.jadwal[idx];
+    j.judul = judul || j.judul;
+    j.tanggal = tanggal || j.tanggal;
+    j.lokasi = lokasi || j.lokasi;
+    j.harga = harga || j.harga;
+    if (qrImage) j.qrImage = qrImage;
+
+    // Jika kuota tiket dinaikkan, tambahkan tiket barcode baru otomatis
+    const kuotaBaru = parseInt(kuota);
+    if (kuotaBaru > j.kuota) {
+        const selisih = kuotaBaru - j.kuota;
+        const currentCount = j.tiketList.length;
+        for (let i = 1; i <= selisih; i++) {
+            let num = (currentCount + i).toString().padStart(3, '0');
+            j.tiketList.push({
+                kode: `STU-${j.id.toString().slice(-4)}-${num}`,
+                status: 'Tersedia',
+                nama: '',
+                email: '',
+                wa: '',
+                checkIn: false,
+                catatan: ''
+            });
+        }
+        j.kuota = kuotaBaru;
+    }
+
+    res.json({ success: true, message: "Event berhasil diperbarui!", event: j });
+});
+
+// Check-In Tiket & Catatan Penonton
 app.put(['/api/admin/tiket/checkin', '/admin/tiket/checkin'], (req, res) => {
     const { kode, catatan } = req.body;
     for (let j of db.jadwal) {
@@ -131,7 +183,7 @@ app.put(['/api/admin/tiket/checkin', '/admin/tiket/checkin'], (req, res) => {
     res.status(404).json({ error: "Tiket tidak ditemukan" });
 });
 
-// Tiketing Manual (Penjualan Tiket OTS)
+// Tiketing Manual (OTS)
 app.post(['/api/admin/tiket/manual', '/admin/tiket/manual'], (req, res) => {
     const { jadwalId, nama, email, wa, catatan, autoCheckIn } = req.body;
     const j = (db.jadwal || []).find(x => x.id == jadwalId) || db.jadwal[0];
@@ -153,7 +205,7 @@ app.post(['/api/admin/tiket/manual', '/admin/tiket/manual'], (req, res) => {
     res.status(201).json({ success: true, message: "Tiket OTS berhasil diterbitkan!", kode: tiketTersedia.kode, tiket: tiketTersedia });
 });
 
-// Manajemen Akun Petugas oleh Super Admin
+// Manajemen Petugas
 app.post(['/api/admin/users', '/admin/users'], (req, res) => {
     const { user, pass, role } = req.body;
     if ((db.users || []).find(x => x.user.toLowerCase() === user.toLowerCase())) {
@@ -202,7 +254,7 @@ app.post(['/api/admin/pendaftar-sync', '/admin/pendaftar-sync'], (req, res) => {
     res.json({ success: true, count: db.pendaftar.length });
 });
 
-// Status Tiket Lunas / Batal
+// Update Tiket Lunas / Batal
 app.put(['/api/admin/tiket/status', '/admin/tiket/status'], (req, res) => {
     const { jadwalId, kode, status } = req.body;
     const j = db.jadwal.find(x => x.id == jadwalId);
@@ -228,7 +280,7 @@ app.delete(['/api/admin/:tipe/:id', '/admin/:tipe/:id'], (req, res) => {
     }
 });
 
-// Universal POST Catch-All
+// Penanganan Rute POST Universal
 app.post('*', (req, res, next) => {
     let body = req.body;
     if (typeof body === 'string') {

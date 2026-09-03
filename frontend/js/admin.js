@@ -1,6 +1,40 @@
 // frontend/js/admin.js
 
 let db = { users: [], profil: {}, prestasi: [], jadwal: [], galeri: [], anggota: [], pendaftar: [], pesan: [] };
+const BACKUP_KEY = 'samantha_persistent_backup';
+
+// --- FITUR AUTO-BACKUP & AUTO-RESTORE (ANTI DATA KERESET) ---
+function simpanBackupLokal() {
+    try {
+        localStorage.setItem(BACKUP_KEY, JSON.stringify(db));
+        const badge = document.getElementById('badge-auto-backup');
+        if (badge) badge.classList.remove('hidden');
+    } catch(e) { console.error("LocalStorage penuh", e); }
+}
+
+async function cekDanRestoreBackup() {
+    // Jika data jadwal di server kosong (misal sehabis redeploy Vercel)
+    if (!db.jadwal || db.jadwal.length === 0) {
+        const cadangan = localStorage.getItem(BACKUP_KEY);
+        if (cadangan) {
+            try {
+                const parsed = JSON.parse(cadangan);
+                if (parsed.jadwal && parsed.jadwal.length > 0) {
+                    const res = await fetch(`${API_BASE_URL}/admin/restore-backup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(parsed)
+                    });
+                    if (res.ok) {
+                        db = parsed;
+                        renderUI();
+                        console.log("✅ Data berhasil dipulihkan otomatis dari cadangan browser!");
+                    }
+                }
+            } catch(e) { console.error("Gagal restore:", e); }
+        }
+    }
+}
 
 // --- KOMPRESI GAMBAR ---
 function processImage(file, callback) {
@@ -29,6 +63,8 @@ async function fetchAdminData() {
         const res = await fetch(`${API_BASE_URL}/admin/all`);
         if (res.ok) {
             db = await res.json();
+            await cekDanRestoreBackup();
+            simpanBackupLokal();
             renderUI();
         }
     } catch (err) { console.error("Gagal ambil data:", err); }
@@ -45,9 +81,17 @@ function renderUI() {
         if (pesanEl) pesanEl.innerText = (db.pesan || []).length;
 
         let tiketLunas = 0;
-        (db.jadwal || []).forEach(j => { tiketLunas += (j.tiketList || []).filter(t => t.status === 'Lunas').length; });
+        let penontonHadir = 0;
+        (db.jadwal || []).forEach(j => {
+            (j.tiketList || []).forEach(t => {
+                if (t.status === 'Lunas') tiketLunas++;
+                if (t.checkIn) penontonHadir++;
+            });
+        });
         const tiketEl = document.getElementById('stat-tiket');
         if (tiketEl) tiketEl.innerText = tiketLunas;
+        const hadirEl = document.getElementById('stat-hadir');
+        if (hadirEl) hadirEl.innerText = penontonHadir;
 
         if (db.profil) {
             const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ""; };
@@ -73,7 +117,7 @@ function renderUI() {
             }
         }
 
-        // Render Jadwal Event & Opsi OTS
+        // Render Jadwal Event
         const jContainer = document.getElementById('jadwal-container');
         const otsSelect = document.getElementById('ots-jadwal');
         if (otsSelect) otsSelect.innerHTML = (db.jadwal || []).map(j => `<option value="${j.id}">${j.judul} (Rp ${j.harga})</option>`).join('');
@@ -81,19 +125,22 @@ function renderUI() {
         if (jContainer) {
             jContainer.innerHTML = (db.jadwal || []).map(j => {
                 const trj = (j.tiketList || []).filter(t => t.status !== 'Tersedia').length;
+                const hadirCount = (j.tiketList || []).filter(t => t.checkIn).length;
                 return `
                 <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center border-l-4 border-l-red-600 shadow-lg mb-4 gap-4">
                     <div>
                         <h4 class="font-bold text-white text-lg">${j.judul}</h4>
                         <p class="text-xs text-gray-400 mt-2 font-mono"><i class="fa-regular fa-calendar text-red-600"></i> ${j.tanggal} | <i class="fa-solid fa-location-dot text-red-600"></i> ${j.lokasi}</p>
-                        <div class="mt-3 flex gap-3">
+                        <div class="mt-3 flex gap-2 flex-wrap">
                             <span class="bg-black text-gray-300 px-3 py-1 text-xs rounded border border-gray-700 font-bold">Harga: Rp ${j.harga}</span>
-                            <span class="bg-green-900/30 text-green-500 border border-green-900 px-3 py-1 text-xs rounded font-bold">Terjual / Booking: ${trj}/${j.kuota}</span>
+                            <span class="bg-green-900/30 text-green-500 border border-green-900 px-3 py-1 text-xs rounded font-bold">Terjual: ${trj}/${j.kuota}</span>
+                            <span class="bg-emerald-950/40 text-emerald-400 border border-emerald-800 px-3 py-1 text-xs rounded font-bold"><i class="fa-solid fa-door-open mr-1"></i> Hadir: ${hadirCount}</span>
                         </div>
                     </div>
-                    <div class="flex gap-3 w-full md:w-auto mt-4 md:mt-0">
-                        <button type="button" onclick="bukaDataPembeli(${j.id}, '${j.judul}')" class="bg-blue-600 text-white px-4 py-2 text-sm font-bold rounded hover:bg-blue-500 shadow flex-1"><i class="fa-solid fa-users mr-2"></i> Data Pembeli</button>
-                        <button type="button" onclick="hapusData('jadwal', ${j.id})" class="bg-red-900/50 text-red-500 border border-red-900 px-4 py-2 text-sm rounded hover:bg-red-600 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>
+                    <div class="flex gap-2 w-full md:w-auto mt-4 md:mt-0 flex-wrap">
+                        <button type="button" onclick="bukaDataPembeli(${j.id}, '${j.judul}')" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded hover:bg-blue-500 shadow"><i class="fa-solid fa-users mr-1"></i> Presensi Penonton</button>
+                        <button type="button" onclick="bukaModalEditJadwal(${j.id})" class="bg-yellow-600/30 text-yellow-400 border border-yellow-700 px-3 py-2 text-xs font-bold rounded hover:bg-yellow-600 hover:text-white transition"><i class="fa-solid fa-pen mr-1"></i> Edit Event</button>
+                        <button type="button" onclick="hapusData('jadwal', ${j.id})" class="bg-red-900/50 text-red-500 border border-red-900 px-3 py-2 text-xs rounded hover:bg-red-600 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>`;
             }).join('');
@@ -117,14 +164,23 @@ function renderUI() {
                 </tr>`).join('');
         }
 
-        // Render Pendaftar Oprec
+        // Render Pendaftar Oprec (Rapi Kolom per Kolom)
         const tPendaftar = document.getElementById('tabel-pendaftar');
         if (tPendaftar) {
             tPendaftar.innerHTML = (db.pendaftar || []).length === 0 ? '<tr><td colspan="4" class="p-6 text-center text-gray-500">Belum ada data ditarik dari Cloud/Lokal.</td></tr>' : db.pendaftar.map(p => `
                 <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
                     <td class="p-4 font-mono text-xs">${p.tgl}</td>
-                    <td class="p-4"><strong class="text-white text-base">${p.nama}</strong><br><span class="text-xs text-gray-500">${p.nim} - ${p.prodi}</span></td>
-                    <td class="p-4 text-xs font-bold text-gray-400">${p.wa}<br><span class="text-red-500">${p.posisi}</span></td>
+                    <td class="p-4">
+                        <strong class="text-white text-base block">${p.nama}</strong>
+                        <span class="text-xs text-gray-400 font-mono font-bold text-red-400">${p.nim}</span>
+                        ${p.prodi && p.prodi !== '-' ? `<span class="text-xs text-gray-500"> | ${p.prodi}</span>` : ''}
+                    </td>
+                    <td class="p-4 text-xs">
+                        <a href="https://wa.me/${p.wa.replace(/[^0-9]/g, '')}" target="_blank" class="text-green-400 hover:underline font-mono font-bold block mb-1">
+                            <i class="fa-brands fa-whatsapp mr-1"></i>${p.wa}
+                        </a>
+                        <span class="px-2 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-800 text-[10px] font-bold">${p.posisi}</span>
+                    </td>
                     <td class="p-4 text-center" data-exclude="true">
                         <button type="button" onclick="bukaModalOprec(${p.id})" class="text-blue-400 hover:text-white mr-4 transition"><i class="fa-solid fa-pen"></i></button>
                         <button type="button" onclick="hapusData('pendaftar', ${p.id})" class="text-red-500 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>
@@ -173,7 +229,7 @@ function renderUI() {
                 </div>`).join('');
         }
 
-        // Render Akun Petugas (Super Admin)
+        // Render Akun Petugas
         const tUsers = document.getElementById('tabel-users');
         if (tUsers) {
             const roleLabels = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: "Divisi PDD" };
@@ -182,7 +238,7 @@ function renderUI() {
                     <td class="p-4 font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-circle text-gray-500"></i> ${u.user}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-bold rounded bg-red-900/30 text-red-400 border border-red-800">${roleLabels[u.role] || u.role}</span></td>
                     <td class="p-4 text-center">
-                        ${u.user === 'admin' ? '<span class="text-xs text-gray-500 italic">Akun Utama</span>' : `<button type="button" onclick="hapusUser('${u.user}')" class="text-red-500 hover:text-white px-3 py-1 rounded bg-red-900/20 border border-red-900 text-xs font-bold"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>`}
+                        ${u.user.toLowerCase() === 'admin' ? '<span class="text-xs text-gray-500 italic">Akun Utama</span>' : `<button type="button" onclick="hapusUser('${u.user}')" class="text-red-500 hover:text-white px-3 py-1 rounded bg-red-900/20 border border-red-900 text-xs font-bold"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>`}
                     </td>
                 </tr>`).join('');
         }
@@ -366,7 +422,6 @@ window.startScanner = async function() {
         html5QrCode = new Html5Qrcode("reader");
         const config = { fps: 15, qrbox: { width: 250, height: 150 }, aspectRatio: 1.777778 };
 
-        // Prioritas kamera belakang HP (environment), otomatis fallback kamera webcam
         try {
             await html5QrCode.start(
                 { facingMode: "environment" },
@@ -393,7 +448,7 @@ window.startScanner = async function() {
     } catch (err) {
         console.error(err);
         if (readerEl) {
-            readerEl.innerHTML = `<div class="p-4 text-xs text-red-400 bg-black/60 rounded">⚠️ Izin kamera belum diberikan atau browser memblokirnya.<br>Silakan izinkan kamera di menu bar browser Anda atau ketik kode manual di bawah.</div>`;
+            readerEl.innerHTML = `<div class="p-4 text-xs text-red-400 bg-black/60 rounded">⚠️ Izin kamera belum diberikan atau browser memblokirnya.<br>Silakan izinkan kamera di browser Anda atau ketik kode manual di bawah.</div>`;
         }
     }
 };
@@ -432,12 +487,12 @@ document.getElementById('form-verifikasi')?.addEventListener('submit', function(
                 <div class="bg-red-900/40 border border-red-500 text-red-300 p-3 rounded mb-2 text-xs w-full text-center">
                     <i class="fa-solid fa-triangle-exclamation mr-1"></i> <b>PERINGATAN: TIKET SUDAH DIPAKAI!</b><br>
                     Waktu Masuk: <b>${found.checkInTime || '-'}</b><br>
-                    Catatan Kursi: <b>${found.catatan || '-'}</b>
+                    Catatan: <b>${found.catatan || '-'}</b>
                 </div>
             ` : `
                 <div class="w-full bg-black/60 p-3 border border-gray-800 rounded mb-2">
-                    <label class="block text-[11px] font-bold text-gray-400 mb-1 text-left">Catatan Penonton / Nomor Kursi:</label>
-                    <input type="text" id="input-catatan-checkin" placeholder="Contoh: Baris A-12, VIP Pintu Barat" value="${found.catatan || ''}" class="w-full bg-gray-900 border border-gray-700 p-2 text-xs text-white rounded outline-none focus:border-green-500 mb-3">
+                    <label class="block text-[11px] font-bold text-gray-400 mb-1 text-left">Catatan Penonton / No. Kursi:</label>
+                    <input type="text" id="input-catatan-checkin" placeholder="Contoh: Kursi A-12, VIP Pintu Barat" value="${found.catatan || ''}" class="w-full bg-gray-900 border border-gray-700 p-2 text-xs text-white rounded outline-none focus:border-green-500 mb-3">
                     <button type="button" onclick="prosesCheckIn('${found.kode}')" class="w-full bg-green-600 hover:bg-green-500 text-white py-2.5 rounded font-bold text-xs shadow transition">
                         <i class="fa-solid fa-door-open mr-1"></i> Konfirmasi Masuk (Check-In Sekarang)
                     </button>
@@ -473,7 +528,59 @@ window.prosesCheckIn = async function(kode) {
     } catch(err) { alert('❌ Gagal check-in: ' + err.message); }
 };
 
-// --- 3. TIKETING MANUAL (OTS / ON THE SPOT) ---
+// --- 3. FITUR EDIT EVENT JADWAL ---
+window.bukaModalEditJadwal = function(id) {
+    const j = (db.jadwal || []).find(x => x.id == id);
+    if (!j) return alert('Event tidak ditemukan');
+    document.getElementById('ej-id').value = j.id;
+    document.getElementById('ej-judul').value = j.judul;
+    document.getElementById('ej-tanggal').value = j.tanggal;
+    document.getElementById('ej-lokasi').value = j.lokasi;
+    document.getElementById('ej-harga').value = j.harga;
+    document.getElementById('ej-kuota').value = j.kuota;
+    openModal('modal-edit-jadwal');
+};
+
+document.getElementById('form-edit-jadwal')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const id = document.getElementById('ej-id').value;
+    const qrFile = document.getElementById('ej-qr')?.files?.[0];
+
+    const updateEvent = async (qrBase64) => {
+        const payload = {
+            judul: document.getElementById('ej-judul').value.trim(),
+            tanggal: document.getElementById('ej-tanggal').value,
+            lokasi: document.getElementById('ej-lokasi').value.trim(),
+            harga: parseInt(document.getElementById('ej-harga').value),
+            kuota: parseInt(document.getElementById('ej-kuota').value)
+        };
+        if (qrBase64) payload.qrImage = qrBase64;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/jadwal/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert('✅ Event berhasil diperbarui!');
+                if (overlay) overlay.classList.add('hidden');
+                fetchAdminData();
+            } else {
+                alert('❌ ' + result.error);
+            }
+        } catch(err) { alert('❌ Gagal update event: ' + err.message); }
+    };
+
+    if (qrFile) {
+        processImage(qrFile, updateEvent);
+    } else {
+        updateEvent(null);
+    }
+});
+
+// --- 4. TIKETING MANUAL (OTS / ON THE SPOT) ---
 window.bukaModalOTS = function() {
     if ((db.jadwal || []).length === 0) return alert('Silakan buat event pementasan terlebih dahulu!');
     openModal('modal-ots');
@@ -506,34 +613,89 @@ document.getElementById('form-ots')?.addEventListener('submit', async function(e
     } catch(err) { alert('❌ Gagal: ' + err.message); }
 });
 
-// --- 4. DATA PEMBELI ---
+// --- 5. DATA PEMBELI & PRESENSI PENONTON LENGKAP ---
+let currentEventPresensiId = null;
+let currentFilterPresensi = 'semua';
+
 window.bukaDataPembeli = function(idJadwal, judul) {
+    currentEventPresensiId = idJadwal;
     const tTitle = document.getElementById('title-pembeli');
     if (tTitle) tTitle.innerText = "Event: " + judul;
+    filterPresensi('semua');
+    openModal('modal-pembeli');
+};
+
+window.filterPresensi = function(tipe) {
+    currentFilterPresensi = tipe;
+    document.querySelectorAll('.btn-filter-presensi').forEach(b => {
+        b.className = "btn-filter-presensi px-3 py-1 text-xs font-bold rounded bg-gray-800 text-gray-300 hover:text-white";
+    });
+    const activeBtn = event?.target;
+    if (activeBtn) activeBtn.className = "btn-filter-presensi active px-3 py-1 text-xs font-bold rounded bg-red-600 text-white";
+
+    const j = (db.jadwal || []).find(x => x.id == currentEventPresensiId);
+    if (!j) return;
+
+    const allSold = (j.tiketList || []).filter(t => t.status !== 'Tersedia');
+    const totalLunas = allSold.filter(t => t.status === 'Lunas').length;
+    const totalHadir = allSold.filter(t => t.checkIn).length;
+    const totalBelum = totalLunas - totalHadir;
+
+    document.getElementById('rekap-total').innerText = allSold.length;
+    document.getElementById('rekap-lunas').innerText = totalLunas;
+    document.getElementById('rekap-hadir').innerText = totalHadir;
+    document.getElementById('rekap-belum').innerText = totalBelum > 0 ? totalBelum : 0;
+
+    let filtered = allSold;
+    if (tipe === 'hadir') filtered = allSold.filter(t => t.checkIn);
+    else if (tipe === 'belum') filtered = allSold.filter(t => !t.checkIn);
+
     const tBody = document.getElementById('list-pembeli');
     if (!tBody) return;
     tBody.innerHTML = '';
-    const j = (db.jadwal || []).find(x => x.id == idJadwal);
-    const terjualList = (j?.tiketList || []).filter(t => t.status !== 'Tersedia');
-    if (terjualList.length === 0) {
-        tBody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-500">Belum ada tiket yang dipesan.</td></tr>';
+
+    if (filtered.length === 0) {
+        tBody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-500">Tidak ada data untuk filter ini.</td></tr>';
+        return;
     }
-    terjualList.forEach(p => {
+
+    filtered.forEach(p => {
         const isL = p.status === 'Lunas';
         tBody.innerHTML += `
         <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
             <td class="p-4 font-mono font-bold text-red-500">${p.kode}</td>
             <td class="p-4 font-bold text-white">${p.nama}<br><span class="text-xs text-gray-400">${p.email} / ${p.wa}</span></td>
             <td class="p-4 font-bold ${isL?'text-green-500':'text-yellow-500'}">${p.status}</td>
-            <td class="p-4"><span class="px-2 py-1 text-xs rounded font-bold ${p.checkIn?'bg-green-900/40 text-green-400':'bg-gray-800 text-gray-400'}">${p.checkIn ? `Masuk (${p.checkInTime})` : 'Belum'}</span></td>
-            <td class="p-4 text-xs text-gray-400">${p.catatan || '-'}</td>
+            <td class="p-4">
+                <span class="px-2 py-1 text-xs rounded font-bold ${p.checkIn?'bg-green-900/40 text-green-400 border border-green-800':'bg-yellow-900/30 text-yellow-400 border border-yellow-800'}">
+                    ${p.checkIn ? `<i class="fa-solid fa-circle-check mr-1"></i> Masuk (${p.checkInTime})` : '<i class="fa-regular fa-clock mr-1"></i> Belum Datang'}
+                </span>
+            </td>
+            <td class="p-4 text-xs text-gray-400 font-mono">${p.catatan || '-'}</td>
             <td class="p-4 text-center">
                 ${!isL ? `<button type="button" onclick="konfirmasiLunas(${j.id}, '${p.kode}')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold shadow hover:bg-green-500"><i class="fa-solid fa-paper-plane mr-1"></i> Lunas</button>` : `<button type="button" onclick="batalLunas(${j.id}, '${p.kode}')" class="bg-gray-800 text-gray-400 px-3 py-1.5 rounded text-xs hover:text-white hover:bg-red-600">Batal Lunas</button>`}
             </td>
         </tr>`;
     });
-    openModal('modal-pembeli');
 };
+
+// Download CSV Rekap Presensi
+document.getElementById('btn-export-presensi')?.addEventListener('click', function() {
+    const j = (db.jadwal || []).find(x => x.id == currentEventPresensiId);
+    if (!j) return alert('Event tidak dipilih');
+    const allSold = (j.tiketList || []).filter(t => t.status !== 'Tersedia');
+
+    let csv = "Kode Tiket,Nama Pembeli,Email,WhatsApp,Status Pembayaran,Status Kehadiran,Jam Masuk,Catatan Kursi\n";
+    allSold.forEach(p => {
+        csv += `"${p.kode}","${p.nama}","${p.email}","${p.wa}","${p.status}","${p.checkIn ? 'Hadir' : 'Belum Hadir'}","${p.checkInTime || '-'}","${p.catatan || '-'}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Presensi_${j.judul.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+    link.click();
+});
 
 window.konfirmasiLunas = async function(idJadwal, kode) {
     const res = await fetch(`${API_BASE_URL}/admin/tiket/status`, {
@@ -550,7 +712,7 @@ window.konfirmasiLunas = async function(idJadwal, kode) {
         const body = encodeURIComponent(`Halo ${t.nama},\n\nPembayaran tiket Anda telah dikonfirmasi!\n\nLakon: ${j.judul}\nKode Tiket: ${t.kode}\n\nSilakan tunjukkan link Barcode berikut saat check-in:\n${barcodeUrl}\n\nTerima kasih,\nTeater SAMANTHA`);
         window.location.href = `mailto:${t.email}?subject=${subject}&body=${body}`;
         bukaDataPembeli(idJadwal, j.judul);
-        renderUI();
+        fetchAdminData();
     }
 };
 
@@ -565,16 +727,16 @@ window.batalLunas = async function(idJadwal, kode) {
         const t = j.tiketList.find(x => x.kode === kode);
         t.status = 'Pending';
         bukaDataPembeli(idJadwal, j.judul);
-        renderUI();
+        fetchAdminData();
     }
 };
 
-// --- 5. TARIK DATA G-FORM / GOOGLE SHEETS (SMART CSV PARSER) ---
+// --- 6. TARIK DATA G-FORM / GOOGLE SHEETS (SMART HEADER DETECTOR) ---
 function parseSmartCSV(text) {
     if (!text) return [];
     text = text.replace(/^\uFEFF/, '').trim();
     
-    // Auto detect pemisah koma (,) atau titik koma (;)
+    // Auto-detect pemisah koma (,) atau titik-koma (;)
     const firstLine = text.split('\n')[0] || '';
     const commaCount = (firstLine.match(/,/g) || []).length;
     const semiCount = (firstLine.match(/;/g) || []).length;
@@ -612,23 +774,40 @@ document.getElementById('form-import-oprec')?.addEventListener('submit', functio
         .then(response => response.text())
         .then(async csvText => {
             if (csvText.toLowerCase().includes('<!doctype') || csvText.toLowerCase().includes('<html')) {
-                throw new Error("Pastikan memilih format CSV saat Publish Google Sheets.");
+                throw new Error("Link salah! Pastikan memilih opsi 'CSV (Nilai yang dipisahkan koma)' saat Publikasikan ke Web.");
             }
             const lines = parseSmartCSV(csvText);
+            if (lines.length <= 1) throw new Error("File CSV kosong atau tidak ada data pendaftar.");
+
+            // Deteksi Header Baris Pertama
+            const headers = lines[0].map(h => h.toLowerCase().trim());
+            const idxNama = headers.findIndex(h => h.includes('nama'));
+            const idxNim = headers.findIndex(h => h.includes('nim') || h.includes('npm') || h.includes('induk'));
+            const idxProdi = headers.findIndex(h => h.includes('prodi') || h.includes('jurusan') || h.includes('program studi'));
+            const idxWa = headers.findIndex(h => h.includes('wa') || h.includes('whatsapp') || h.includes('telepon') || h.includes('hp') || h.includes('kontak') || h.includes('nomor'));
+            const idxPosisi = headers.findIndex(h => h.includes('posisi') || h.includes('divisi') || h.includes('minat') || h.includes('bidang') || h.includes('alasan'));
+
             let imported = [];
-            
             for (let i = 1; i < lines.length; i++) {
                 const row = lines[i];
                 if (row.length < 2) continue;
-                
+
+                // Ambil nilai kolom berdasarkan header atau fallback urutan
+                const tgl = row[0] ? row[0].split(' ')[0] : '-';
+                const nama = (idxNama !== -1 ? row[idxNama] : row) || '-';
+                const nim = (idxNim !== -1 ? row[idxNim] : (row || '-'));
+                const prodi = (idxProdi !== -1 ? row[idxProdi] : (row || '-'));
+                const wa = (idxWa !== -1 ? row[idxWa] : (row[row.length - 1] || '-'));
+                const posisi = (idxPosisi !== -1 ? row[idxPosisi] : 'Calon Anggota');
+
                 imported.push({
                     id: Date.now() + i,
-                    tgl: row[0] ? row[0].split(' ')[0] : '-',
-                    nama: row || '-',
-                    nim: row || '-',
-                    prodi: row.length >= 5 ? (row || '-') : '-',
-                    wa: row[row.length - 1] || '-',
-                    posisi: 'Calon Anggota'
+                    tgl: tgl,
+                    nama: nama,
+                    nim: nim,
+                    prodi: prodi,
+                    wa: wa,
+                    posisi: posisi
                 });
             }
 
@@ -638,7 +817,7 @@ document.getElementById('form-import-oprec')?.addEventListener('submit', functio
                 body: JSON.stringify({ data: imported })
             });
             if (res.ok) {
-                alert(`✅ Sinkronisasi Berhasil! ${imported.length} pendaftar ditarik dari Cloud.`);
+                alert(`✅ Sinkronisasi Berhasil! ${imported.length} pendaftar ditarik dengan rapi.`);
                 document.getElementById('form-import-oprec')?.reset();
                 fetchAdminData();
             }
@@ -652,8 +831,9 @@ window.bukaModalOprec = function(id) {
         const oId = document.getElementById('o-id'); if (oId) oId.value = p.id;
         const oNama = document.getElementById('o-nama'); if (oNama) oNama.value = p.nama;
         const oNim = document.getElementById('o-nim'); if (oNim) oNim.value = p.nim;
+        const oProdi = document.getElementById('o-prodi'); if (oProdi) oProdi.value = p.prodi || '';
         const oWa = document.getElementById('o-wa'); if (oWa) oWa.value = p.wa;
-        const oPos = document.getElementById('o-posisi'); if (oPos) oPos.value = p.posisi;
+        const oPos = document.getElementById('o-posisi'); if (oPos) oPos.value = p.posisi || '';
         openModal('modal-oprec');
     }
 };
@@ -665,6 +845,7 @@ document.getElementById('form-oprec')?.addEventListener('submit', async function
     if (idx !== -1) {
         db.pendaftar[idx].nama = document.getElementById('o-nama').value;
         db.pendaftar[idx].nim = document.getElementById('o-nim').value;
+        db.pendaftar[idx].prodi = document.getElementById('o-prodi').value;
         db.pendaftar[idx].wa = document.getElementById('o-wa').value;
         db.pendaftar[idx].posisi = document.getElementById('o-posisi').value;
 
@@ -680,26 +861,18 @@ document.getElementById('form-oprec')?.addEventListener('submit', async function
 });
 
 window.exportCSVOprec = function() {
-    let csv = [];
-    let rows = document.getElementById('table-export-oprec')?.querySelectorAll('tr') || [];
-    for (let i = 0; i < rows.length; i++) {
-        let row = [], cols = rows[i].querySelectorAll('td, th');
-        for (let j = 0; j < cols.length; j++) {
-            if (cols[j].getAttribute('data-exclude') !== 'true') {
-                let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").replace(/,/g, ";");
-                row.push('"' + data + '"');
-            }
-        }
-        csv.push(row.join(','));
-    }
-    let blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    let link = document.createElement('a');
+    let csv = "Tanggal,Nama Lengkap,NIM,Program Studi,WhatsApp,Posisi\n";
+    (db.pendaftar || []).forEach(p => {
+        csv += `"${p.tgl}","${p.nama}","${p.nim}","${p.prodi}","${p.wa}","${p.posisi}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'Data_Oprec_Samantha.csv';
     link.click();
 };
 
-// --- 6. MANAJEMEN AKUN PETUGAS (SUPER ADMIN) ---
+// --- 7. MANAJEMEN AKUN PETUGAS (SUPER ADMIN) ---
 document.getElementById('form-tambah-user')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const payload = {
@@ -739,7 +912,7 @@ window.hapusUser = async function(username) {
     }
 };
 
-// --- 7. BUAT EVENT JADWAL ---
+// --- 8. BUAT EVENT JADWAL BARU ---
 document.getElementById('form-jadwal')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const kuota = parseInt(document.getElementById('j-kuota').value);
@@ -777,7 +950,7 @@ document.getElementById('form-jadwal')?.addEventListener('submit', function(e) {
     });
 });
 
-// --- 8. KELOLA SDM ANGGOTA ---
+// --- 9. KELOLA SDM ANGGOTA ---
 window.bukaModalAnggota = function(id = null) {
     document.getElementById('form-anggota')?.reset();
     const aId = document.getElementById('a-id'); if (aId) aId.value = '';
@@ -833,7 +1006,7 @@ async function simpanDataAnggotaBackend(data) {
     }
 }
 
-// --- 9. UPLOAD GALERI ---
+// --- 10. UPLOAD GALERI ---
 document.getElementById('form-galeri')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const gFileInput = document.getElementById('g-file');
@@ -856,7 +1029,7 @@ document.getElementById('form-galeri')?.addEventListener('submit', function(e) {
     });
 });
 
-// --- 10. PESAN INBOX ---
+// --- 11. PESAN INBOX ---
 window.bacaPesan = function(nama, kontak, isi) {
     const mNama = document.getElementById('msg-nama'); if (mNama) mNama.innerText = nama;
     const mKontak = document.getElementById('msg-kontak'); if (mKontak) mKontak.innerText = kontak;
@@ -866,7 +1039,7 @@ window.bacaPesan = function(nama, kontak, isi) {
     openModal('modal-pesan');
 };
 
-// --- 11. PENGATURAN PROFIL & PRESTASI ---
+// --- 12. PENGATURAN PROFIL & PRESTASI ---
 document.getElementById('form-profil')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const payload = {

@@ -57,6 +57,45 @@
             <button type="button" onclick="closeScannerModal()" class="w-full bg-gray-800 text-white py-3 rounded font-bold hover:bg-gray-700 border border-gray-700">Tutup Kamera</button>
         </div>
 
+        <!-- Modal Edit Event / Jadwal -->
+        <div id="modal-edit-jadwal" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-lg p-6 relative m-auto rounded-lg shadow-2xl">
+            <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-xl font-bold mb-4 border-b border-gray-800 pb-2 text-yellow-500"><i class="fa-solid fa-pen-to-square mr-2"></i> Edit Event & Kuota Tiket</h3>
+            <form id="form-edit-jadwal">
+                <input type="hidden" id="ej-id">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Judul Pementasan</label>
+                    <input type="text" id="ej-judul" class="w-full bg-black border border-gray-800 p-3 text-sm rounded outline-none text-white font-bold" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">Tanggal</label>
+                        <input type="date" id="ej-tanggal" class="w-full bg-black border border-gray-800 p-3 text-sm rounded outline-none text-white" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">Lokasi</label>
+                        <input type="text" id="ej-lokasi" class="w-full bg-black border border-gray-800 p-3 text-sm rounded outline-none text-white" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">Harga Tiket (Rp)</label>
+                        <input type="number" id="ej-harga" class="w-full bg-black border border-gray-800 p-3 text-sm rounded outline-none text-white" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">Total Kuota Tiket</label>
+                        <input type="number" id="ej-kuota" class="w-full bg-black border border-gray-800 p-3 text-sm rounded outline-none text-white" required>
+                        <span class="text-[10px] text-gray-500">*Barcode tambahan dibuat otomatis jika kuota dinaikkan</span>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Ganti QR Code Rekening (Opsional)</label>
+                    <input type="file" id="ej-qr" accept="image/*" class="w-full bg-black border border-gray-800 p-2 text-xs rounded text-gray-400">
+                </div>
+                <button type="submit" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-3 rounded font-bold shadow-lg transition">Simpan Perubahan Event</button>
+            </form>
+        </div>
+
         <!-- Modal Tiket Manual (OTS) -->
         <div id="modal-ots" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-md p-6 relative m-auto rounded-lg shadow-2xl">
             <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
@@ -99,7 +138,7 @@
             </form>
         </div>
 
-        <!-- Modal Jadwal -->
+        <!-- Modal Jadwal Baru -->
         <div id="modal-jadwal" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-lg p-6 relative m-auto rounded-lg">
             <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="text-xl font-bold mb-6 border-b border-gray-800 pb-2">Buat Event (Otomatis Generate Barcode)</h3>
@@ -119,15 +158,34 @@
             </form>
         </div>
 
-        <!-- Modal Data Pembeli -->
-        <div id="modal-pembeli" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-4xl p-6 relative m-auto rounded-lg">
+        <!-- Modal Data Pembeli & Presensi -->
+        <div id="modal-pembeli" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-5xl p-6 relative m-auto rounded-lg shadow-2xl">
             <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-xl font-bold mb-1 text-red-500">Daftar Barcode & Pembeli</h3>
-            <p class="text-gray-400 text-sm mb-6 font-bold" id="title-pembeli"></p>
-            <div class="overflow-y-auto max-h-96 border border-gray-800 rounded">
-                <table class="w-full text-left text-sm whitespace-nowrap">
+            <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+                <h3 class="text-xl font-bold text-red-500"><i class="fa-solid fa-clipboard-user mr-2"></i> Data Pembeli & Presensi Penonton</h3>
+                <button type="button" id="btn-export-presensi" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 text-xs font-bold rounded shadow"><i class="fa-solid fa-file-excel mr-1"></i> Download CSV Presensi</button>
+            </div>
+            <p class="text-gray-400 text-sm mb-4 font-bold" id="title-pembeli"></p>
+
+            <!-- Ringkasan Kehadiran Cepat -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-center">
+                <div class="bg-black p-3 rounded border border-gray-800"><p class="text-[10px] text-gray-400 font-bold uppercase">Total Tiket</p><p class="text-lg font-bold text-white" id="rekap-total">0</p></div>
+                <div class="bg-black p-3 rounded border border-gray-800"><p class="text-[10px] text-gray-400 font-bold uppercase">Sudah Lunas</p><p class="text-lg font-bold text-green-400" id="rekap-lunas">0</p></div>
+                <div class="bg-black p-3 rounded border border-green-800/40 bg-green-950/20"><p class="text-[10px] text-green-400 font-bold uppercase">Sudah Hadir (Check-In)</p><p class="text-lg font-black text-green-400" id="rekap-hadir">0</p></div>
+                <div class="bg-black p-3 rounded border border-yellow-800/40 bg-yellow-950/20"><p class="text-[10px] text-yellow-400 font-bold uppercase">Belum Datang</p><p class="text-lg font-black text-yellow-400" id="rekap-belum">0</p></div>
+            </div>
+
+            <!-- Filter Kehadiran -->
+            <div class="flex gap-2 mb-3">
+                <button type="button" onclick="filterPresensi('semua')" class="btn-filter-presensi active px-3 py-1 text-xs font-bold rounded bg-red-600 text-white">Semua</button>
+                <button type="button" onclick="filterPresensi('hadir')" class="btn-filter-presensi px-3 py-1 text-xs font-bold rounded bg-gray-800 text-gray-300 hover:text-white">Sudah Masuk</button>
+                <button type="button" onclick="filterPresensi('belum')" class="btn-filter-presensi px-3 py-1 text-xs font-bold rounded bg-gray-800 text-gray-300 hover:text-white">Belum Masuk</button>
+            </div>
+
+            <div class="overflow-y-auto max-h-80 border border-gray-800 rounded">
+                <table class="w-full text-left text-sm whitespace-nowrap" id="table-presensi">
                     <thead class="bg-black text-gray-400 sticky top-0 shadow z-10">
-                        <tr><th class="p-4">Kode Barcode</th><th class="p-4">Nama Pembeli</th><th class="p-4">Status Bayar</th><th class="p-4">Check-In</th><th class="p-4">Catatan</th><th class="p-4 text-center">Aksi</th></tr>
+                        <tr><th class="p-4">Kode Barcode</th><th class="p-4">Nama Pembeli</th><th class="p-4">Status Bayar</th><th class="p-4">Presensi Kehadiran</th><th class="p-4">Catatan Kursi</th><th class="p-4 text-center">Aksi</th></tr>
                     </thead>
                     <tbody id="list-pembeli" class="text-gray-300"></tbody>
                 </table>
@@ -158,11 +216,10 @@
             <form id="form-oprec">
                 <input type="hidden" id="o-id">
                 <input type="text" id="o-nama" placeholder="Nama Lengkap" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
-                <input type="text" id="o-nim" placeholder="NIM / Prodi" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
+                <input type="text" id="o-nim" placeholder="NIM" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
+                <input type="text" id="o-prodi" placeholder="Prodi / Jurusan" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none">
                 <input type="text" id="o-wa" placeholder="No. WA" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
-                <select id="o-posisi" class="w-full mb-6 bg-black border border-gray-800 p-3 text-sm rounded outline-none">
-                    <option value="Calon Anggota">Calon Anggota</option><option value="Kru Produksi">Kru Produksi</option>
-                </select>
+                <input type="text" id="o-posisi" placeholder="Pilihan Posisi" class="w-full mb-6 bg-black border border-gray-800 p-3 text-sm rounded outline-none">
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Update Data Oprec</button>
             </form>
         </div>
@@ -213,7 +270,6 @@
                 <button type="button" data-target="pesan" id="nav-pesan" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-envelope w-5"></i> Pesan Masuk</button>
                 <button type="button" data-target="galeri" id="nav-galeri" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-image w-5"></i> Galeri</button>
                 <button type="button" data-target="pengaturan" id="nav-setup" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-gear w-5"></i> Pengaturan Web</button>
-                <!-- Menu Khusus Super Admin -->
                 <button type="button" data-target="users" id="nav-users" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-user-shield w-5"></i> Kelola Petugas</button>
             </nav>
             <div class="p-6 border-t border-gray-800 shrink-0 hidden md:block text-center">
@@ -225,16 +281,20 @@
         <main class="flex-1 flex flex-col overflow-y-auto bg-gray-900 relative">
             <header class="h-20 flex items-center justify-between px-8 bg-gray-900 border-b border-gray-800 sticky top-0 z-10 shrink-0 shadow-md">
                 <h2 id="header-title" class="text-2xl font-bold">Dashboard Overview</h2>
-                <span class="text-sm bg-green-900/30 text-green-500 px-4 py-1.5 rounded-full border border-green-500 font-bold shadow-lg shadow-green-900/20"><i class="fa-solid fa-satellite-dish mr-2"></i> Online</span>
+                <div class="flex items-center gap-3">
+                    <span id="badge-auto-backup" class="text-xs bg-blue-900/40 text-blue-400 border border-blue-700 px-3 py-1 rounded-full font-bold hidden md:inline-block"><i class="fa-solid fa-cloud-check mr-1"></i> Auto-Sync Aktif</span>
+                    <span class="text-sm bg-green-900/30 text-green-500 px-4 py-1.5 rounded-full border border-green-500 font-bold shadow-lg shadow-green-900/20"><i class="fa-solid fa-satellite-dish mr-2"></i> Online</span>
+                </div>
             </header>
 
             <div class="p-6 md:p-8">
                 <!-- DASHBOARD OVERVIEW -->
                 <div id="content-dashboard" class="content-section">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
                         <div class="bg-black p-6 rounded-lg border border-gray-800 border-b-4 border-b-red-600 shadow-xl"><p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Total SDM Anggota</p><p class="text-4xl font-black text-white" id="stat-sdm">0</p></div>
                         <div class="bg-black p-6 rounded-lg border border-gray-800 border-b-4 border-b-red-600 shadow-xl"><p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Pendaftar Oprec</p><p class="text-4xl font-black text-white" id="stat-oprec">0</p></div>
                         <div class="bg-black p-6 rounded-lg border border-gray-800 border-b-4 border-b-green-500 shadow-xl"><p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Tiket Lunas</p><p class="text-4xl font-black text-green-500" id="stat-tiket">0</p></div>
+                        <div class="bg-black p-6 rounded-lg border border-gray-800 border-b-4 border-b-emerald-400 shadow-xl"><p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Penonton Hadir</p><p class="text-4xl font-black text-emerald-400" id="stat-hadir">0</p></div>
                         <div class="bg-black p-6 rounded-lg border border-gray-800 border-b-4 border-b-blue-500 shadow-xl"><p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Pesan Kotak Masuk</p><p class="text-4xl font-black text-blue-400" id="stat-pesan">0</p></div>
                     </div>
                 </div>
@@ -292,7 +352,7 @@
                             </div>
                             <div class="overflow-x-auto h-[400px] border border-gray-800 rounded">
                                 <table class="w-full text-left text-sm whitespace-nowrap" id="table-export-oprec">
-                                    <thead class="bg-gray-900 text-gray-400 sticky top-0 shadow-md"><tr><th class="p-4">Tgl Daftar</th><th class="p-4">Nama & NIM</th><th class="p-4">Info Kontak</th><th class="p-4 text-center" data-exclude="true">Kelola</th></tr></thead>
+                                    <thead class="bg-gray-900 text-gray-400 sticky top-0 shadow-md"><tr><th class="p-4">Tgl Daftar</th><th class="p-4">Nama Lengkap & NIM</th><th class="p-4">WhatsApp & Info</th><th class="p-4 text-center" data-exclude="true">Kelola</th></tr></thead>
                                     <tbody id="tabel-pendaftar" class="text-gray-300"></tbody>
                                 </table>
                             </div>
@@ -364,7 +424,7 @@
                     </div>
                 </div>
 
-                <!-- KELOLA PETUGAS (KHUSUS SUPER ADMIN) -->
+                <!-- KELOLA PETUGAS -->
                 <div id="content-users" class="content-section hidden">
                     <div class="grid lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-1 bg-black border border-gray-800 rounded-lg p-6 shadow-xl">
