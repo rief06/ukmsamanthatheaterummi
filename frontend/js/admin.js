@@ -242,7 +242,6 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user: u, pass: p })
         });
-        
         const result = await res.json();
 
         if (res.ok && result.success) {
@@ -256,8 +255,8 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             alert('❌ ' + (result.error || 'Username atau Password Salah!'));
         }
     } catch (err) {
-        console.error("Login Error:", err);
-        alert('❌ Gagal menghubungi server backend! Pastikan server backend sedang aktif.');
+        console.error(err);
+        alert('❌ Gagal menghubungi server: ' + err.message);
     }
 });
 
