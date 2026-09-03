@@ -43,50 +43,30 @@ const handleLogin = (req, res) => {
     }
     body = body || {};
     
-    // Ambil data dan bersihkan spasi
+    // Hilangkan spasi dan samakan huruf kecil
     const user = (body.user || body.username || '').trim().toLowerCase();
     const pass = (body.pass || body.password || '').trim();
 
-    // Pastikan user admin selalu ada dan cocokkan tanpa sensitif huruf kapital
-    const users = db.users || [{ user: "admin", pass: "samanthanewgeneration", role: "admin" }];
+    // Data akun bawaan
+    const users = db.users || [{ user: "admin", pass: "admin123", role: "admin" }];
     const u = users.find(x => x.user.toLowerCase() === user && x.pass === pass);
     
     if (!u) {
         return res.status(401).json({ error: "Username atau Password salah" });
     }
-    res.json({ success: true, user: { user: u.user, role: u.role } });
+    return res.json({ success: true, user: { user: u.user, role: u.role } });
 };
 
-const handleRegister = (req, res) => {
-    let body = req.body;
-    if (typeof body === 'string') {
-        try { body = JSON.parse(body); } catch(e) {}
-    }
-    body = body || {};
-    const user = (body.user || '').trim().toLowerCase();
-    const pass = (body.pass || '').trim();
-    const role = body.role || 'admin';
-
-    if ((db.users || []).find(x => x.user.toLowerCase() === user)) {
-        return res.status(400).json({ error: "Username sudah terdaftar" });
-    }
-    db.users.push({ user, pass, role });
-    res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
-};
-
-// Penanganan Rute Auth Universal
+// Rute auth universal
+app.post(['/api/auth/login', '/auth/login', '/api/login'], handleLogin);
 app.post('*', (req, res, next) => {
     let body = req.body;
     if (typeof body === 'string') {
         try { body = JSON.parse(body); } catch(e) {}
     }
     body = body || {};
-
     if (req.url.includes('login') || (body.user && body.pass && !body.role)) {
         return handleLogin(req, res);
-    }
-    if (req.url.includes('register') || (body.user && body.pass && body.role)) {
-        return handleRegister(req, res);
     }
     next();
 });
