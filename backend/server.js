@@ -37,20 +37,59 @@ let db = {
 
 // ================= HANDLERS AUTH =================
 const handleLogin = (req, res) => {
-    const { user, pass } = req.body || {};
-    const u = (db.users || []).find(x => x.user === user && x.pass === pass);
-    if (!u) return res.status(401).json({ error: "Username atau Password salah" });
+    let body = req.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) {}
+    }
+    body = body || {};
+    
+    // Ambil data dan bersihkan spasi
+    const user = (body.user || body.username || '').trim().toLowerCase();
+    const pass = (body.pass || body.password || '').trim();
+
+    // Pastikan user admin selalu ada dan cocokkan tanpa sensitif huruf kapital
+    const users = db.users || [{ user: "admin", pass: "samanthanewgeneration", role: "admin" }];
+    const u = users.find(x => x.user.toLowerCase() === user && x.pass === pass);
+    
+    if (!u) {
+        return res.status(401).json({ error: "Username atau Password salah" });
+    }
     res.json({ success: true, user: { user: u.user, role: u.role } });
 };
 
 const handleRegister = (req, res) => {
-    const { user, pass, role } = req.body || {};
-    if ((db.users || []).find(x => x.user === user)) {
+    let body = req.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) {}
+    }
+    body = body || {};
+    const user = (body.user || '').trim().toLowerCase();
+    const pass = (body.pass || '').trim();
+    const role = body.role || 'admin';
+
+    if ((db.users || []).find(x => x.user.toLowerCase() === user)) {
         return res.status(400).json({ error: "Username sudah terdaftar" });
     }
     db.users.push({ user, pass, role });
     res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
 };
+
+// Penanganan Rute Auth Universal
+app.post('*', (req, res, next) => {
+    let body = req.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) {}
+    }
+    body = body || {};
+
+    if (req.url.includes('login') || (body.user && body.pass && !body.role)) {
+        return handleLogin(req, res);
+    }
+    if (req.url.includes('register') || (body.user && body.pass && body.role)) {
+        return handleRegister(req, res);
+    }
+    next();
+});
 
 // ================= HANDLER CRUD ADMIN =================
 app.post(['/api/admin/jadwal', '/admin/jadwal'], (req, res) => {
