@@ -184,7 +184,7 @@ window.hapusData = async function(tipe, id) {
     }
 };
 
-// --- LOGIKA AUTH & LOGIN ---
+// --- AUTH & TAB TOGGLE ---
 const loginSect = document.getElementById('login-section');
 const dashSect = document.getElementById('dashboard-section');
 
@@ -209,7 +209,22 @@ if (activeUser) {
     fetchAdminData();
 }
 
-// SUBMIT FORM LOGIN
+document.getElementById('tab-login')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    this.className = "w-1/2 pb-2 text-red-600 border-b-2 border-red-600 font-bold text-sm";
+    document.getElementById('tab-register').className = "w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300";
+    document.getElementById('login-form')?.classList.remove('hidden');
+    document.getElementById('register-form')?.classList.add('hidden');
+});
+
+document.getElementById('tab-register')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    this.className = "w-1/2 pb-2 text-red-600 border-b-2 border-red-600 font-bold text-sm";
+    document.getElementById('tab-login').className = "w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300";
+    document.getElementById('register-form')?.classList.remove('hidden');
+    document.getElementById('login-form')?.classList.add('hidden');
+});
+
 document.getElementById('login-form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const u = document.getElementById('l-user').value.trim();
@@ -221,26 +236,15 @@ document.getElementById('login-form')?.addEventListener('submit', async function
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user: u, pass: p })
         });
-        
-        const text = await res.text();
-        let result;
-        try {
-            result = JSON.parse(text);
-        } catch (jsonErr) {
-            alert(`⚠️ Respons Server (Status ${res.status}):\n${text.substring(0, 250)}`);
-            return;
-        }
+        const result = await res.json();
 
         if (res.ok && result.success) {
             sessionStorage.setItem('active_user', JSON.stringify(result.user));
             activeUser = result.user;
             
-            // Sembunyikan panel login & tampilkan dashboard
             bukaDashboard();
             applyRoleRestrictions(result.user.role);
             fetchAdminData();
-            
-            alert('✅ Berhasil masuk! Selamat datang, ' + result.user.user);
         } else {
             alert('❌ ' + (result.error || 'Username atau Password Salah!'));
         }
