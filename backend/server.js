@@ -45,6 +45,27 @@ let db = {
     pesan: []
 };
 
+// Auth Routes di backend/server.js
+const handleLogin = (req, res) => {
+    const { user, pass } = req.body;
+    const u = (db.users || []).find(x => x.user === user && x.pass === pass);
+    if (!u) return res.status(401).json({ error: "Username atau Password salah" });
+    res.json({ success: true, user: { user: u.user, role: u.role } });
+};
+app.post('/api/auth/login', handleLogin);
+app.post('/auth/login', handleLogin);
+
+const handleRegister = (req, res) => {
+    const { user, pass, role } = req.body;
+    if ((db.users || []).find(x => x.user === user)) {
+        return res.status(400).json({ error: "Username sudah terdaftar" });
+    }
+    db.users.push({ user, pass, role });
+    res.status(201).json({ success: true, message: "Akun berhasil dibuat" });
+};
+app.post('/api/auth/register', handleRegister);
+app.post('/auth/register', handleRegister);
+
 // --- ROUTES: PUBLIC ---
 app.get('/api/public/data', (req, res) => {
     res.json({

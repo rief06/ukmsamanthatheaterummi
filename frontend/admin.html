@@ -20,8 +20,8 @@
                 <h2 class="text-2xl font-bold tracking-wider mb-2">PORTAL <span class="text-red-600">ADMIN</span></h2>
             </div>
             <div class="flex border-b border-gray-800 mb-6">
-                <button id="tab-login" class="w-1/2 pb-2 text-brand-red border-b-2 border-brand-red font-bold text-sm">Login</button>
-                <button id="tab-register" class="w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300">Buat Akun Baru</button>
+                <button type="button" id="tab-login" class="w-1/2 pb-2 text-red-600 border-b-2 border-red-600 font-bold text-sm">Login</button>
+                <button type="button" id="tab-register" class="w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300">Buat Akun Baru</button>
             </div>
             <form id="login-form">
                 <input type="text" id="l-user" placeholder="Username (Default: admin)" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
@@ -33,8 +33,10 @@
                 <input type="password" id="r-pass" placeholder="Password Baru" class="w-full bg-black border border-gray-800 px-4 py-3 mb-4 rounded outline-none focus:border-red-600" required>
                 <select id="r-role" class="w-full bg-black border border-gray-800 px-4 py-3 mb-6 rounded outline-none focus:border-red-600 text-sm" required>
                     <option value="" disabled selected>Pilih Role / Jabatan...</option>
-                    <option value="admin">Super Admin</option><option value="ketum">Ketua Umum (Akses Penuh)</option>
-                    <option value="sekre">Sekretaris</option><option value="pdd">Divisi PDD (Hanya Tiket & Galeri)</option>
+                    <option value="admin">Super Admin (Akses Penuh)</option>
+                    <option value="ketum">Ketua Umum (Akses Penuh)</option>
+                    <option value="sekre">Sekretaris (Hanya SDM & Pengaturan)</option>
+                    <option value="pdd">Divisi PDD (Hanya Tiket & Galeri)</option>
                 </select>
                 <button type="submit" class="w-full bg-blue-600 text-white py-3 font-bold rounded hover:bg-blue-700 shadow-lg transition">Daftarkan Akun</button>
             </form>
@@ -44,25 +46,21 @@
     <!-- SEMUA MODALS POPUP -->
     <div id="overlay-modal" class="fixed inset-0 bg-black/90 z-[80] hidden flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto py-10">
         
-        <!-- Modal Kamera Scanner -->
+        <!-- Modal Scanner -->
         <div id="modal-scanner" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-md p-6 relative m-auto rounded-lg text-center">
-            <button onclick="closeScannerModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full z-10"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-xl font-bold mb-4 text-brand-red"><i class="fa-solid fa-camera mr-2"></i> Kamera Scanner Tiket</h3>
+            <button type="button" onclick="closeScannerModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full z-10"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-xl font-bold mb-4 text-red-600"><i class="fa-solid fa-camera mr-2"></i> Kamera Scanner Tiket</h3>
             <p class="text-xs text-gray-400 mb-4 bg-black p-2 rounded">Izinkan akses kamera di Browser Anda. Arahkan barcode pengunjung ke layar.</p>
-            <div id="reader" class="w-full rounded overflow-hidden border-2 border-brand-red mb-4 bg-black"></div>
-            <button onclick="closeScannerModal()" class="w-full bg-gray-800 text-white py-3 rounded font-bold hover:bg-gray-700 border border-gray-700">Tutup Kamera</button>
+            <div id="reader" class="w-full rounded overflow-hidden border-2 border-red-600 mb-4 bg-black"></div>
+            <button type="button" onclick="closeScannerModal()" class="w-full bg-gray-800 text-white py-3 rounded font-bold hover:bg-gray-700 border border-gray-700">Tutup Kamera</button>
         </div>
 
-        <!-- Modal Import GDrive (Custom Parser Anti-Error) -->
+        <!-- Modal Import GDrive -->
         <div id="modal-import-oprec" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-lg p-6 relative m-auto rounded-lg">
-            <button class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="text-xl font-bold mb-2 border-b border-gray-800 pb-2 text-blue-500"><i class="fa-solid fa-cloud-arrow-down mr-2"></i> Tarik Data G-Form (CSV)</h3>
             <div class="bg-blue-900/20 border border-blue-500/50 p-4 rounded mb-6 text-xs text-gray-300">
-                <strong>PANDUAN PENTING:</strong><br>
-                1. Buka File Jawaban Google Form Anda di Google Sheets.<br>
-                2. Klik Menu <strong>File > Bagikan > Publikasikan ke web</strong>.<br>
-                3. Pilih Format <strong>CSV</strong>.<br>
-                4. Klik Publikasikan, lalu <strong>Copy Link yang berakhiran <span class="text-blue-400">/pub?output=csv</span></strong>.
+                <strong>PANDUAN:</strong> Publikasikan Google Sheets ke web dalam format CSV, lalu copy link-nya ke bawah ini.
             </div>
             <form id="form-import-oprec">
                 <input type="url" id="import-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none focus:border-blue-500" required>
@@ -72,16 +70,19 @@
 
         <!-- Modal Jadwal -->
         <div id="modal-jadwal" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-lg p-6 relative m-auto rounded-lg">
-            <button class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-xl font-bold mb-6 border-b border-gray-800 pb-2">Buat Event</h3>
+            <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-xl font-bold mb-6 border-b border-gray-800 pb-2">Buat Event (Generate Barcode)</h3>
             <form id="form-jadwal">
                 <input type="text" id="j-judul" placeholder="Judul Pementasan" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
-                <div class="grid grid-cols-2 gap-4 mb-4"><input type="date" id="j-tanggal" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required><input type="text" id="j-lokasi" placeholder="Lokasi (ex: Audit)" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required></div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <input type="date" id="j-tanggal" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
+                    <input type="text" id="j-lokasi" placeholder="Lokasi (ex: Audit)" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
+                </div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <input type="number" id="j-harga" placeholder="Harga Tiket (Rp)" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
-                    <input type="number" id="j-kuota" placeholder="Jumlah Tiket Dibuat" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required title="Kode Barcode akan dibuat sebanyak jumlah ini.">
+                    <input type="number" id="j-kuota" placeholder="Jumlah Tiket" class="bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
                 </div>
-                <label class="block text-xs font-bold text-gray-400 mb-2">Upload QR Code Pembayaran</label>
+                <label class="block text-xs font-bold text-gray-400 mb-2">Upload QR Code Rekening</label>
                 <input type="file" id="j-qr" accept="image/*" class="w-full mb-6 bg-black border border-gray-800 p-2 text-sm rounded" required>
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Generate Barcode & Simpan Event</button>
             </form>
@@ -89,12 +90,14 @@
 
         <!-- Modal Data Pembeli -->
         <div id="modal-pembeli" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-4xl p-6 relative m-auto rounded-lg">
-            <button class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="text-xl font-bold mb-1 text-red-500">Daftar Barcode & Pembeli</h3>
             <p class="text-gray-400 text-sm mb-6 font-bold" id="title-pembeli"></p>
             <div class="overflow-y-auto max-h-96 border border-gray-800 rounded">
                 <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="bg-black text-gray-400 sticky top-0 shadow z-10"><tr><th class="p-4">Kode Barcode</th><th class="p-4">Nama Pembeli</th><th class="p-4">Kontak (WA/Email)</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi Lunas (Email Barcode)</th></tr></thead>
+                    <thead class="bg-black text-gray-400 sticky top-0 shadow z-10">
+                        <tr><th class="p-4">Kode Barcode</th><th class="p-4">Nama Pembeli</th><th class="p-4">Kontak</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi Lunas</th></tr>
+                    </thead>
                     <tbody id="list-pembeli" class="text-gray-300"></tbody>
                 </table>
             </div>
@@ -102,43 +105,32 @@
 
         <!-- Modal Form Anggota -->
         <div id="modal-anggota" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-sm p-6 relative m-auto rounded-lg">
-            <button class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="text-xl font-bold mb-6 border-b border-gray-800 pb-2" id="title-anggota">Form SDM Anggota</h3>
             <form id="form-anggota">
                 <input type="hidden" id="a-id">
                 <input type="text" id="a-nama" placeholder="Nama Lengkap" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
                 <input type="text" id="a-divisi" placeholder="Divisi/Jabatan" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
-                <select id="a-status" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none"><option value="Aktif">Aktif</option><option value="Pasif">Pasif</option><option value="Alumni">Alumni</option></select>
-                <label class="block text-xs font-bold text-gray-400 mb-1">Foto Anggota
-                    
-                </label>
+                <select id="a-status" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none">
+                    <option value="Aktif">Aktif</option><option value="Pasif">Pasif</option><option value="Alumni">Alumni</option>
+                </select>
+                <label class="block text-xs font-bold text-gray-400 mb-1">Foto Anggota (Opsional)</label>
                 <input type="file" id="a-foto" accept="image/*" class="w-full mb-6 bg-black border border-gray-800 p-2 text-xs rounded">
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Simpan Data Anggota</button>
             </form>
         </div>
 
-        <!-- Modal Edit Oprec -->
-        <div id="modal-oprec" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-sm p-6 relative m-auto rounded-lg">
-            <button class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-xl font-bold mb-6 border-b border-gray-800 pb-2">Edit Data Pendaftar</h3>
-            <form id="form-oprec">
-                <input type="hidden" id="o-id">
-                <input type="text" id="o-nama" placeholder="Nama Lengkap" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
-                <input type="text" id="o-nim" placeholder="NIM / Prodi" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
-                <input type="text" id="o-wa" placeholder="No. WA" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded outline-none" required>
-                <select id="o-posisi" class="w-full mb-6 bg-black border border-gray-800 p-3 text-sm rounded outline-none">
-                    <option value="Calon Anggota">Calon Anggota</option><option value="Kru Produksi">Kru Produksi</option>
-                </select>
-                <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Update Data Oprec</button>
-            </form>
-        </div>
-
         <!-- Modal Upload Galeri -->
         <div id="modal-upload-galeri" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-sm p-6 relative m-auto rounded-lg">
-            <button class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="text-xl font-bold mb-6 border-b border-gray-800 pb-2">Upload Galeri Web</h3>
             <form id="form-galeri">
-                <select id="g-kategori" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded" required><option value="" disabled selected>Pilih Kategori...</option><option value="Pementasan">Pementasan</option><option value="Behind The Scenes">Behind The Scenes</option><option value="Latihan">Latihan & Moment</option></select>
+                <select id="g-kategori" class="w-full mb-4 bg-black border border-gray-800 p-3 text-sm rounded" required>
+                    <option value="" disabled selected>Pilih Kategori...</option>
+                    <option value="Pementasan">Pementasan</option>
+                    <option value="Behind The Scenes">Behind The Scenes</option>
+                    <option value="Latihan">Latihan & Moment</option>
+                </select>
                 <input type="file" id="g-file" accept="image/*" class="w-full mb-6 bg-black border border-gray-800 p-3 text-sm rounded" required>
                 <button type="submit" class="w-full bg-red-600 text-white py-3 font-bold hover:bg-red-700 rounded shadow-lg">Upload</button>
             </form>
@@ -146,7 +138,7 @@
 
         <!-- Modal Baca Pesan Inbox -->
         <div id="modal-pesan" class="modal-box hidden bg-gray-900 border border-gray-800 w-full max-w-lg p-8 relative m-auto rounded-lg">
-            <button class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="close-modal absolute top-4 right-4 text-gray-400 hover:text-white bg-black w-8 h-8 rounded-full"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="text-2xl font-bold mb-6 border-b border-gray-800 pb-2">Detail Pesan Masuk</h3>
             <p class="text-xs text-gray-400">Pengirim:</p>
             <p class="text-lg font-bold text-white" id="msg-nama"></p>
@@ -155,7 +147,6 @@
             <a href="#" id="btn-balas-email" class="block w-full bg-blue-600 text-white py-3 rounded text-center font-bold hover:bg-blue-700 shadow-lg transition mb-3"><i class="fa-solid fa-reply mr-2"></i> Balas ke Email Ini</a>
         </div>
     </div>
-
 
     <!-- LAYOUT DASHBOARD MAIN -->
     <div id="dashboard-section" class="hidden w-full h-full flex flex-col md:flex-row">
@@ -169,15 +160,15 @@
                 </div>
             </div>
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto flex md:block flex-nowrap overflow-x-auto">
-                <button data-target="dashboard" class="sidebar-link active-link w-full flex items-center gap-3 bg-red-600 text-white px-4 py-3 rounded shrink-0 font-bold"><i class="fa-solid fa-chart-line w-5"></i> Dashboard</button>
-                <button data-target="pementasan" id="nav-tiket" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-ticket w-5"></i> Jadwal & Tiket</button>
-                <button data-target="anggota" id="nav-sdm" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-users w-5"></i> SDM & Oprec</button>
-                <button data-target="pesan" id="nav-pesan" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-envelope w-5"></i> Pesan Masuk</button>
-                <button data-target="galeri" id="nav-galeri" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-image w-5"></i> Galeri</button>
-                <button data-target="pengaturan" id="nav-setup" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-gear w-5"></i> Pengaturan Web</button>
+                <button type="button" data-target="dashboard" class="sidebar-link active-link w-full flex items-center gap-3 bg-red-600 text-white px-4 py-3 rounded shrink-0 font-bold"><i class="fa-solid fa-chart-line w-5"></i> Dashboard</button>
+                <button type="button" data-target="pementasan" id="nav-tiket" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-ticket w-5"></i> Jadwal & Tiket</button>
+                <button type="button" data-target="anggota" id="nav-sdm" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-users w-5"></i> SDM & Oprec</button>
+                <button type="button" data-target="pesan" id="nav-pesan" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-envelope w-5"></i> Pesan Masuk</button>
+                <button type="button" data-target="galeri" id="nav-galeri" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-image w-5"></i> Galeri</button>
+                <button type="button" data-target="pengaturan" id="nav-setup" class="sidebar-link w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 px-4 py-3 rounded shrink-0 font-semibold transition"><i class="fa-solid fa-gear w-5"></i> Pengaturan Web</button>
             </nav>
             <div class="p-6 border-t border-gray-800 shrink-0 hidden md:block text-center">
-                <button id="logout-btn" class="w-full bg-gray-900 border border-gray-800 text-gray-400 hover:text-red-500 hover:border-red-900 px-4 py-3 rounded font-bold transition shadow-lg"><i class="fa-solid fa-power-off mr-2"></i> Logout</button>
+                <button type="button" id="logout-btn" class="w-full bg-gray-900 border border-gray-800 text-gray-400 hover:text-red-500 hover:border-red-900 px-4 py-3 rounded font-bold transition shadow-lg"><i class="fa-solid fa-power-off mr-2"></i> Logout</button>
             </div>
         </aside>
 
@@ -185,7 +176,7 @@
         <main class="flex-1 flex flex-col overflow-y-auto bg-gray-900 relative">
             <header class="h-20 flex items-center justify-between px-8 bg-gray-900 border-b border-gray-800 sticky top-0 z-10 shrink-0 shadow-md">
                 <h2 id="header-title" class="text-2xl font-bold">Dashboard Overview</h2>
-                <span class="text-sm bg-green-900/30 text-green-500 px-4 py-1.5 rounded-full border border-green-500 font-bold shadow-lg shadow-green-900/20"><i class="fa-solid fa-satellite-dish mr-2"></i> Database V8</span>
+                <span class="text-sm bg-green-900/30 text-green-500 px-4 py-1.5 rounded-full border border-green-500 font-bold shadow-lg shadow-green-900/20"><i class="fa-solid fa-satellite-dish mr-2"></i> Online</span>
             </header>
 
             <div class="p-6 md:p-8">
@@ -205,20 +196,16 @@
                         <div class="lg:col-span-2">
                             <div class="flex justify-between items-center mb-6">
                                 <h3 class="font-bold text-2xl">Manajemen Tiket Event</h3>
-                                <button onclick="openModal('modal-jadwal')" class="bg-red-600 text-white px-4 py-2 text-sm font-bold rounded shadow-lg hover:bg-red-700 transition"><i class="fa-solid fa-plus mr-2"></i> Buat Event & Barcode</button>
+                                <button type="button" onclick="openModal('modal-jadwal')" class="bg-red-600 text-white px-4 py-2 text-sm font-bold rounded shadow-lg hover:bg-red-700 transition"><i class="fa-solid fa-plus mr-2"></i> Buat Event & Barcode</button>
                             </div>
                             <div id="jadwal-container" class="space-y-4"></div>
                         </div>
                         <div class="lg:col-span-1">
                             <div class="bg-black border border-gray-800 p-6 rounded-lg sticky top-6 shadow-2xl">
-                                <h3 class="font-bold text-xl mb-2 text-center text-brand-red"><i class="fa-solid fa-barcode mr-2"></i> Scanner Barcode Tiket</h3>
-                                <p class="text-xs text-gray-400 text-center mb-6 border-b border-gray-800 pb-4">Buka Kamera atau Ketik Kode (TKT-XXXX).</p>
-                                
-                                <button onclick="startScanner()" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-3 rounded font-bold mb-4 flex justify-center items-center gap-2 shadow"><i class="fa-solid fa-camera"></i> Buka Kamera Laptop/HP</button>
-
+                                <h3 class="font-bold text-xl mb-2 text-center text-red-500"><i class="fa-solid fa-barcode mr-2"></i> Scanner Barcode Tiket</h3>
+                                <button type="button" onclick="startScanner()" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-3 rounded font-bold mb-4 flex justify-center items-center gap-2 shadow"><i class="fa-solid fa-camera"></i> Buka Kamera</button>
                                 <form id="form-verifikasi" class="mb-2 relative mt-4">
-                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none -mt-8"><span class="text-gray-500 font-bold bg-black px-2 text-[10px]">ATAU KETIK MANUAL</span></div>
-                                    <input type="text" id="input-kode-tiket" placeholder="Contoh: TKT-123456" class="w-full bg-gray-900 border border-gray-700 text-center text-white p-4 font-black uppercase rounded mt-3 mb-4 text-lg outline-none focus:border-red-600 tracking-widest">
+                                    <input type="text" id="input-kode-tiket" placeholder="Contoh: TKT-123456" class="w-full bg-gray-900 border border-gray-700 text-center text-white p-4 font-black uppercase rounded mb-4 text-lg outline-none focus:border-red-600">
                                     <button type="submit" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded font-bold hover:bg-gray-700 shadow">Cek Status Tiket</button>
                                 </form>
                                 <div id="hasil-verifikasi" class="hidden p-4 rounded-lg text-center border mt-4 text-sm font-bold flex flex-col items-center"></div>
@@ -230,26 +217,16 @@
                 <!-- SDM & OPREC -->
                 <div id="content-anggota" class="content-section hidden">
                     <div class="grid lg:grid-cols-2 gap-8">
-                        <!-- Database Anggota -->
                         <div class="bg-black border border-gray-800 rounded-lg p-6 shadow-xl">
-                            <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2"><h3 class="font-bold text-xl">Kelola SDM Aktif</h3><button onclick="bukaModalAnggota()" class="bg-blue-600 text-white px-3 py-1.5 text-xs font-bold rounded shadow-lg hover:bg-blue-500"><i class="fa-solid fa-plus mr-1"></i> Tambah SDM</button></div>
+                            <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2"><h3 class="font-bold text-xl">Kelola SDM</h3><button type="button" onclick="bukaModalAnggota()" class="bg-blue-600 text-white px-3 py-1.5 text-xs font-bold rounded hover:bg-blue-500"><i class="fa-solid fa-plus mr-1"></i> Tambah</button></div>
                             <div class="overflow-x-auto h-[400px] border border-gray-800 rounded">
-                                <table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-900 text-gray-400 sticky top-0 shadow-md"><tr><th class="p-4">Anggota</th><th class="p-4">Jabatan</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi</th></tr></thead>
-                                <tbody id="tabel-anggota" class="text-gray-300"></tbody></table>
+                                <table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-900 text-gray-400 sticky top-0 shadow-md"><tr><th class="p-4">Anggota</th><th class="p-4">Divisi</th><th class="p-4">Status</th><th class="p-4 text-center">Aksi</th></tr></thead><tbody id="tabel-anggota" class="text-gray-300"></tbody></table>
                             </div>
                         </div>
-                        <!-- Pendaftar Oprec Publik -->
                         <div class="bg-black border border-gray-800 rounded-lg p-6 shadow-xl">
-                            <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2">
-                                <h3 class="font-bold text-xl">Data Oprec <span class="text-xs font-normal text-blue-400 ml-2">(Sync G-Form)</span></h3>
-                                <div class="flex gap-2">
-                                    <button onclick="openModal('modal-import-oprec')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 text-xs font-bold rounded shadow-lg"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Sync G-Drive</button>
-                                    <button onclick="exportCSVOprec()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 text-xs font-bold rounded shadow-lg"><i class="fa-solid fa-download mr-1"></i> CSV</button>
-                                </div>
-                            </div>
+                            <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2"><h3 class="font-bold text-xl">Data Oprec</h3><button type="button" onclick="openModal('modal-import-oprec')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 text-xs font-bold rounded shadow-lg"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Sync Sheets</button></div>
                             <div class="overflow-x-auto h-[400px] border border-gray-800 rounded">
-                                <table class="w-full text-left text-sm whitespace-nowrap" id="table-export-oprec"><thead class="bg-gray-900 text-gray-400 sticky top-0 shadow-md"><tr><th class="p-4">Tgl Daftar</th><th class="p-4">Nama Lengkap & NIM</th><th class="p-4">Info Lanjutan</th><th class="p-4 text-center" data-exclude="true">Kelola</th></tr></thead>
-                                <tbody id="tabel-pendaftar" class="text-gray-300"></tbody></table>
+                                <table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-900 text-gray-400 sticky top-0 shadow-md"><tr><th class="p-4">Tgl</th><th class="p-4">Nama & NIM</th><th class="p-4">Kontak</th><th class="p-4 text-center">Aksi</th></tr></thead><tbody id="tabel-pendaftar" class="text-gray-300"></tbody></table>
                             </div>
                         </div>
                     </div>
@@ -258,7 +235,7 @@
                 <!-- PESAN MASUK -->
                 <div id="content-pesan" class="content-section hidden">
                     <div class="bg-black border border-gray-800 rounded-lg p-8 shadow-xl">
-                        <h3 class="font-bold text-2xl mb-6 border-b border-gray-800 pb-4 flex items-center gap-3"><i class="fa-solid fa-inbox text-brand-red"></i> Kotak Masuk Pesan Web</h3>
+                        <h3 class="font-bold text-2xl mb-6 border-b border-gray-800 pb-4 flex items-center gap-3"><i class="fa-solid fa-inbox text-red-600"></i> Kotak Masuk Pesan</h3>
                         <div class="space-y-4" id="pesan-container"></div>
                     </div>
                 </div>
@@ -266,53 +243,22 @@
                 <!-- GALERI -->
                 <div id="content-galeri" class="content-section hidden">
                     <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-                        <h3 class="font-bold text-2xl">Manajemen Galeri Web</h3>
-                        <button onclick="openModal('modal-upload-galeri')" class="bg-red-600 text-white px-6 py-2 text-sm font-bold rounded shadow-lg hover:bg-red-700"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Upload Foto Baru</button>
+                        <h3 class="font-bold text-2xl">Manajemen Galeri</h3>
+                        <button type="button" onclick="openModal('modal-upload-galeri')" class="bg-red-600 text-white px-6 py-2 text-sm font-bold rounded shadow-lg hover:bg-red-700"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Upload Foto</button>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="gallery-grid-admin"></div>
                 </div>
 
-                <!-- PENGATURAN WEB & OPREC -->
+                <!-- PENGATURAN -->
                 <div id="content-pengaturan" class="content-section hidden">
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="bg-black border border-gray-800 rounded-lg p-8 shadow-xl">
-                            <h3 class="font-bold text-xl mb-6 text-brand-red border-b border-gray-800 pb-2"><i class="fa-solid fa-id-card mr-2"></i> Pengaturan Konten Web Utama</h3>
-                            <form id="form-profil" class="space-y-4">
-                                <div><label class="text-xs font-bold text-gray-500 mb-1 block">Nama Organisasi</label><input type="text" id="p-nama" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white font-bold"></div>
-                                <div class="bg-red-900/10 p-4 border border-brand-red/30 rounded-lg">
-                                    <label class="text-xs font-bold text-brand-red mb-2 block">STATUS OPREC & LINK GOOGLE FORM</label>
-                                    <select id="p-status-oprec" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white mb-3 font-bold"><option value="Buka">BUKA PENDAFTARAN</option><option value="Tutup">TUTUP PENDAFTARAN</option></select>
-                                    <input type="url" id="p-link" placeholder="Link Google Form..." class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white">
-                                </div>
-                                <div><label class="text-xs font-bold text-gray-500 mb-1 block">Sejarah Singkat</label><textarea id="p-sejarah" rows="3" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white"></textarea></div>
-                                <div class="grid grid-cols-2 gap-4"><div><label class="text-xs font-bold text-gray-500 mb-1 block">Email Web</label><input type="email" id="p-email" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white"></div><div><label class="text-xs font-bold text-gray-500 mb-1 block">Telepon/WA</label><input type="text" id="p-telepon" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 focus:border-brand-red text-white"></div></div>
-                                <div class="grid grid-cols-3 gap-4 border-t border-gray-800 pt-4 mt-2">
-                                    <div><label class="text-[10px] font-bold text-gray-500 mb-1 block">Link IG</label><input type="text" id="p-ig" class="w-full bg-gray-900 p-2 text-xs rounded border border-gray-800 text-white"></div>
-                                    <div><label class="text-[10px] font-bold text-gray-500 mb-1 block">Link TikTok</label><input type="text" id="p-tiktok" class="w-full bg-gray-900 p-2 text-xs rounded border border-gray-800 text-white"></div>
-                                </div>
-                                <button type="submit" class="w-full bg-red-600 text-white py-3 rounded text-sm font-bold shadow-lg hover:bg-red-700 mt-4"><i class="fa-solid fa-save mr-2"></i> Simpan Pengaturan Web</button>
-                            </form>
-                        </div>
-
-                        <div class="space-y-8">
-                            <div class="bg-black border border-gray-800 rounded-lg p-6 shadow-xl">
-                                <h3 class="font-bold text-xl mb-6 text-brand-red border-b border-gray-800 pb-2"><i class="fa-solid fa-image mr-2"></i> Desain Visual Web (Auto Compress)</h3>
-                                <div class="space-y-4">
-                                    <div class="flex items-center gap-4 bg-gray-900 p-3 rounded border border-gray-800"><img id="prev-logo" src="" class="w-12 h-12 object-cover rounded-full border border-gray-600 bg-white"><div class="flex-1"><p class="text-sm font-bold mb-1 text-white">Logo Utama Web</p><input type="file" id="f-logo" accept="image/*" class="text-xs text-gray-400 w-full"></div></div>
-                                    <div class="flex items-center gap-4 bg-gray-900 p-3 rounded border border-gray-800"><div id="prev-bg" class="w-20 h-12 bg-cover bg-center rounded border border-gray-600"></div><div class="flex-1"><p class="text-sm font-bold mb-1 text-white">Background Header Beranda</p><input type="file" id="f-bg" accept="image/*" class="text-xs text-gray-400 w-full"></div></div>
-                                    <div class="flex items-center gap-4 bg-gray-900 p-3 rounded border border-gray-800"><img id="prev-tentang" src="" class="w-12 h-16 object-cover rounded border border-gray-600"><div class="flex-1"><p class="text-sm font-bold mb-1 text-white">Foto Samping Halaman Profil</p><input type="file" id="f-tentang" accept="image/*" class="text-xs text-gray-400 w-full"></div></div>
-                                </div>
-                            </div>
-                            <div class="bg-black border border-gray-800 rounded-lg p-6 shadow-xl">
-                                <h3 class="font-bold text-xl mb-4 text-brand-red"><i class="fa-solid fa-trophy mr-2"></i> Database Prestasi</h3>
-                                <form id="form-prestasi" class="flex flex-col gap-3 mb-4 border-b border-gray-800 pb-4">
-                                    <div class="flex gap-2"><input type="number" id="pr-tahun" placeholder="Tahun" class="w-24 bg-gray-900 border border-gray-700 p-3 text-sm text-white font-bold rounded" required><input type="text" id="pr-judul" placeholder="Judul Prestasi" class="flex-1 bg-gray-900 border border-gray-700 p-3 text-sm text-white rounded" required></div>
-                                    <input type="text" id="pr-desc" placeholder="Keterangan..." class="w-full bg-gray-900 border border-gray-700 p-3 text-sm text-white rounded" required>
-                                    <button type="submit" class="bg-green-600 hover:bg-green-500 text-white p-3 rounded font-bold shadow-lg"><i class="fa-solid fa-plus mr-2"></i> Tambah Prestasi</button>
-                                </form>
-                                <div id="list-prestasi" class="space-y-2 h-32 overflow-y-auto pr-2"></div>
-                            </div>
-                        </div>
+                    <div class="bg-black border border-gray-800 rounded-lg p-8 shadow-xl max-w-xl">
+                        <h3 class="font-bold text-xl mb-6 text-red-600 border-b border-gray-800 pb-2"><i class="fa-solid fa-id-card mr-2"></i> Pengaturan Web</h3>
+                        <form id="form-profil" class="space-y-4">
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Nama Organisasi</label><input type="text" id="p-nama" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 text-white font-bold"></div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Email Web</label><input type="email" id="p-email" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 text-white"></div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Telepon</label><input type="text" id="p-telepon" class="w-full bg-gray-900 p-3 text-sm rounded outline-none border border-gray-800 text-white"></div>
+                            <button type="submit" class="w-full bg-red-600 text-white py-3 rounded text-sm font-bold shadow-lg hover:bg-red-700 mt-4">Simpan Pengaturan</button>
+                        </form>
                     </div>
                 </div>
 
@@ -320,8 +266,155 @@
         </main>
     </div>
 
-    <!-- ================= SCRIPT EKSTERNAL ================= -->
-    <script src="/js/config.js"></script>
-    <script src="/js/admin.js"></script>
+    <!-- ================= JAVASCRIPT CLIENT TERHUBUNG KE BACKEND ================= -->
+    <script>
+        const API_BASE_URL = "/api";
+        let db = { users: [], profil: {}, prestasi: [], jadwal: [], galeri: [], anggota: [], pendaftar: [], pesan: [] };
+
+        const loginSect = document.getElementById('login-section');
+        const dashSect = document.getElementById('dashboard-section');
+
+        // TAB SWITCHING LOGIN & REGISTER
+        document.getElementById('tab-login').addEventListener('click', function(e) {
+            e.preventDefault();
+            this.className = "w-1/2 pb-2 text-red-600 border-b-2 border-red-600 font-bold text-sm";
+            document.getElementById('tab-register').className = "w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300";
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        });
+
+        document.getElementById('tab-register').addEventListener('click', function(e) {
+            e.preventDefault();
+            this.className = "w-1/2 pb-2 text-red-600 border-b-2 border-red-600 font-bold text-sm";
+            document.getElementById('tab-login').className = "w-1/2 pb-2 text-gray-500 font-bold text-sm hover:text-gray-300";
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+        });
+
+        // CEK USER SESSION
+        let activeUser = JSON.parse(sessionStorage.getItem('active_user'));
+        if(activeUser) {
+            loginSect.classList.add('hidden');
+            dashSect.classList.remove('hidden');
+            applyRoleRestrictions(activeUser.role);
+            fetchAdminData();
+        }
+
+        // SUBMIT LOGIN KE BACKEND
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const u = document.getElementById('l-user').value.trim();
+            const p = document.getElementById('l-pass').value.trim();
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: u, pass: p })
+                });
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    sessionStorage.setItem('active_user', JSON.stringify(result.user));
+                    activeUser = result.user;
+                    loginSect.classList.add('hidden');
+                    dashSect.classList.remove('hidden');
+                    applyRoleRestrictions(result.user.role);
+                    fetchAdminData();
+                } else {
+                    alert('❌ ' + (result.error || 'Username atau Password Salah!'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('❌ Gagal menghubungi server backend. Pastikan Vercel sudah aktif!');
+            }
+        });
+
+        // SUBMIT REGISTER KE BACKEND
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const u = document.getElementById('r-user').value.trim();
+            const p = document.getElementById('r-pass').value.trim();
+            const r = document.getElementById('r-role').value;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: u, pass: p, role: r })
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    alert('✅ Akun berhasil didaftarkan! Silakan Login.');
+                    document.getElementById('tab-login').click();
+                    this.reset();
+                } else {
+                    alert('❌ ' + (result.error || 'Gagal mendaftarkan akun!'));
+                }
+            } catch (err) {
+                alert('❌ Error: ' + err.message);
+            }
+        });
+
+        // LOGOUT
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            sessionStorage.removeItem('active_user');
+            location.reload();
+        });
+
+        // FETCH DATA BACKEND
+        async function fetchAdminData() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/admin/all`);
+                if(res.ok) {
+                    db = await res.json();
+                    renderUI();
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // ROLE RESTRICTIONS
+        function applyRoleRestrictions(role) {
+            const roleName = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: "Divisi PDD" };
+            document.getElementById('sidebar-role-display').innerText = roleName[role] || role;
+        }
+
+        // RENDER UI DASHBOARD
+        function renderUI() {
+            document.getElementById('stat-sdm').innerText = (db.anggota || []).length;
+            document.getElementById('stat-oprec').innerText = (db.pendaftar || []).length;
+            document.getElementById('stat-pesan').innerText = (db.pesan || []).length;
+            let tiketLunas = 0;
+            (db.jadwal || []).forEach(j => { tiketLunas += (j.tiketList || []).filter(t => t.status === 'Lunas').length; });
+            document.getElementById('stat-tiket').innerText = tiketLunas;
+        }
+
+        // SIDEBAR NAVIGATION
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-link').forEach(b => {
+                    b.classList.remove('bg-red-600', 'text-white', 'active-link');
+                    b.classList.add('text-gray-400');
+                });
+                this.classList.remove('text-gray-400');
+                this.classList.add('bg-red-600', 'text-white', 'active-link');
+                document.getElementById('header-title').innerText = this.innerText;
+                document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
+                const target = document.getElementById('content-' + this.getAttribute('data-target'));
+                if(target) target.classList.remove('hidden');
+            });
+        });
+
+        // MODAL UTILS
+        const overlay = document.getElementById('overlay-modal');
+        function openModal(id) {
+            document.querySelectorAll('.modal-box').forEach(m => m.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            overlay.classList.remove('hidden');
+        }
+        window.openModal = openModal;
+        window.closeScannerModal = function() { overlay.classList.add('hidden'); };
+        document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', closeScannerModal));
+    </script>
 </body>
 </html>
