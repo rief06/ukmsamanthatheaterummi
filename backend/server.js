@@ -22,7 +22,7 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Simpan data state/memori (bisa diganti query ke MySQL/PostgreSQL/MongoDB)
+// Simpan data state/memori
 let db = {
     users: [{ user: "admin", pass: "admin123", role: "admin" }],
     profil: {
@@ -30,7 +30,7 @@ let db = {
         sejarah: "Wadah berekspresi seni teater.",
         email: "st@example.com",
         telepon: "08",
-        sosmed: { ig: "#", tiktok: "#", youtube: "#" },
+        sosmed: { ig: "#", tiktok: "#"},
         statusOprec: "Buka",
         linkOprec: "#",
         logo: "https://placehold.co/100",

@@ -1,4 +1,7 @@
 // frontend/js/main.js
+
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 async function loadData() {
     try {
         const res = await fetch(`${API_BASE_URL}/public/data`);

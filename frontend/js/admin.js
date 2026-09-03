@@ -65,7 +65,7 @@ function applyRoleRestrictions(role) {
         document.getElementById('nav-pesan').classList.add('hidden');
         document.getElementById('nav-setup').classList.add('hidden');
     }
-    const roleName = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", pdd: " PDD" };
+    const roleName = { admin: "Super Admin", ketum: "Ketua Umum", sekre: "Sekretaris", kodok: " PDD" };
     document.getElementById('sidebar-role-display').innerText = roleName[role] || role;
 }
 
